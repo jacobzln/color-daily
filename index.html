@@ -699,12 +699,22 @@ function checkGuess(target, guess) {
 function loadUnlimitedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEYS.unlimited));
-    if (saved && !saved.finished) return saved;
+    if (saved && !saved.finished) {
+      // ПРИНУДИТЕЛЬНО сбрасываем анимацию и пустые слоты, 
+      // чтобы игра не зависала при возврате!
+      saved.animating = false;
+      saved.current = [];
+      return saved;
+    }
   } catch(e) {}
   return null;
 }
 function saveUnlimitedState() {
-  if (game && game.mode === 'unlimited') localStorage.setItem(KEYS.unlimited, JSON.stringify(game));
+  if (game && game.mode === 'unlimited') {
+    // Сохраняем копию без флага анимации
+    const stateToSave = Object.assign({}, game, { animating: false, current: [] });
+    localStorage.setItem(KEYS.unlimited, JSON.stringify(stateToSave));
+  }
 }
 function clearUnlimitedState() {
   localStorage.removeItem(KEYS.unlimited);
