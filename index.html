@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
+<title>Color Daily</title>
+<link rel="preconnect" href="https://telegram.org" crossorigin>
+<link rel="dns-prefetch" href="https://telegram.org">
+<script async src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#eee;overscroll-behavior:none;
+  user-select:none;-webkit-user-select:none;min-height:100vh;min-height:100dvh}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:500px;margin:0 auto;width:100%;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+
+/* ГЛОБАЛЬНЫЙ КЛАСС СКРЫТИЯ (исправляет наложение экранов) */
+.hidden { display: none !important; }
+
+/* Header */
+#header{display:flex;align-items:center;padding:12px 8px;border-bottom:1px solid rgba(255,255,255,.08);gap:4px;flex-shrink:0}
+#title{flex:1;text-align:center;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{background:none;border:none;color:#eee;font-size:20px;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .2s;font-family:inherit}
+.icon-btn:active{background:rgba(255,255,255,.1)}
+
+/* Screens */
+.screen{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#game-screen { min-height: 0; } /* убрали display: flex, чтобы не конфликтовало с .hidden */
+
+/* Menu */
+#menu-screen{justify-content:center;align-items:center;padding:24px;gap:10px;overflow-y:auto}
+#menu-screen h1{font-size:26px;margin:0 0 4px;text-align:center}
+.subtitle{color:#aaa;text-align:center;margin:0 0 16px;font-size:14px;max-width:340px}
+.menu-btn{width:100%;max-width:340px;padding:15px 20px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);color:#eee;border-radius:14px;font-size:15px;font-weight:600;
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;transition:all .2s;font-family:inherit}
+.menu-btn:active{background:rgba(255,255,255,.15);transform:scale(.99)}
+.menu-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.menu-btn.center{justify-content:center}
+.status-badge{font-size:12px;color:#aaa;font-weight:500;white-space:nowrap}
+.status-badge.won{color:#2ecc71}
+.status-badge.lost{color:#e74c3c}
+
+/* Game */
+#game-screen{display:flex;flex-direction:column;min-height:0}
+#game-info{padding:10px 16px 2px;font-size:14px;color:#ccc;text-align:center;flex-shrink:0}
+#countdown{padding:0 16px 8px;font-size:12px;color:#888;text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+#attempts-area{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:8px;min-height:0;-webkit-overflow-scrolling:touch}
+#attempts-area::-webkit-scrollbar{width:4px}
+#attempts-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+
+.attempt-row{display:flex;align-items:center;gap:12px;padding:8px 10px;background:rgba(255,255,255,.03);
+  border-radius:12px;animation:slideIn .3s ease-out}
+.attempt-chips{display:flex;gap:6px}
+.attempt-flags{display:flex;gap:4px;margin-left:auto}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.chip{width:40px;height:40px;border-radius:50%;background:var(--chip-color,#333);flex-shrink:0;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.3)}
+.chip.reveal{opacity:0;animation:chipReveal .35s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes chipReveal{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+
+.flag{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.flag.green{background:#2ecc71;box-shadow:0 0 6px rgba(46,204,113,.6)}
+.flag.yellow{background:#f1c40f;box-shadow:0 0 6px rgba(241,196,15,.6)}
+.flag.gray{background:#555}
+.flag.reveal{opacity:0;animation:flagIn .3s ease-out forwards}
+@keyframes flagIn{from{opacity:0;transform:scale(0) rotate(-30deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+
+/* Input */
+#input-area{flex-shrink:0;padding:0 0 8px}
+#current-chips{display:flex;gap:10px;padding:12px;margin:8px 16px 0;background:rgba(255,255,255,.05);
+  border-radius:16px;border:2px dashed rgba(255,255,255,.15);justify-content:center;align-items:center;min-height:68px}
+
+.slot{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.03);
+  border:2px dashed rgba(255,255,255,.18);cursor:pointer;transition:transform .15s}
+.slot.filled{border:none;background:var(--chip-color);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18)}
+.slot.filled.pop{animation:pop .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+#palette{padding:12px 16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.color-btn{width:clamp(38px,11vw,50px);height:clamp(38px,11vw,50px);border-radius:50%;border:none;cursor:pointer;
+  background:var(--chip-color);box-shadow:inset 0 -4px 0 rgba(0,0,0,.28),inset 0 4px 0 rgba(255,255,255,.18),0 3px 8px rgba(0,0,0,.35);
+  transition:transform .1s}
+.color-btn:active{transform:scale(.9)}
+.color-btn:disabled{opacity:.25;cursor:not-allowed;transform:none}
+
+#submit-btn{margin:0 16px 16px;padding:14px;background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;
+  color:#fff;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 14px rgba(46,204,113,.35);transition:all .2s;width:calc(100% - 32px)}
+#submit-btn:disabled{background:rgba(255,255,255,.08);color:#666;box-shadow:none;cursor:not-allowed}
+#submit-btn:not(:disabled):active{transform:scale(.98)}
+
+#game-over-controls{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px}
+#game-over-controls .menu-btn{max-width:100%}
+
+/* Setup */
+#setup-screen{padding:20px;overflow-y:auto;gap:4px}
+.setup-field{margin-bottom:18px}
+.setup-label{display:block;font-size:14px;color:#ccc;margin-bottom:8px}
+.setup-label span{color:#2ecc71;font-weight:700}
+.setup-input{width:100%;padding:8px 0;background:transparent;border:none;color:#eee;font-size:16px;
+  -webkit-appearance:none;appearance:none;height:32px}
+.setup-input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:rgba(255,255,255,.15)}
+.setup-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;
+  border-radius:50%;background:#2ecc71;margin-top:-9px;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer}
+.setup-input::-moz-range-track{height:6px;border-radius:3px;background:rgba(255,255,255,.15)}
+.setup-input::-moz-range-thumb{width:24px;height:24px;border:none;border-radius:50%;background:#2ecc71;cursor:pointer}
+.setup-checkbox{display:flex;align-items:center;gap:10px;font-size:15px;color:#ccc;cursor:pointer}
+.setup-checkbox input{width:22px;height:22px;accent-color:#2ecc71}
+
+/* Stats */
+#stats-screen{padding:20px;overflow-y:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px}
+.stat-card{background:rgba(255,255,255,.05);border-radius:12px;padding:14px;text-align:center}
+.stat-value{font-size:26px;font-weight:700;color:#fff;line-height:1.1}
+.stat-label{font-size:12px;color:#aaa;margin-top:4px}
+.stat-value.rating{color:#f1c40f}
+.stats-note{font-size:12px;color:#888;text-align:center;margin-bottom:16px;font-style:italic}
+.dist-title{font-size:14px;color:#aaa;margin-bottom:12px;font-weight:600}
+.dist-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dist-num{width:22px;text-align:right;font-size:13px;color:#888;flex-shrink:0}
+.dist-bar-container{flex:1;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden}
+.dist-bar{background:linear-gradient(90deg,#2ecc71,#27ae60);height:24px;display:flex;align-items:center;
+  justify-content:flex-end;padding-right:8px;font-size:12px;font-weight:600;color:#fff;min-width:24px;
+  border-radius:4px;transition:width .5s ease}
+.dist-bar.zero{background:transparent;color:#555;justify-content:flex-start;padding-left:8px}
+
+/* Rules */
+#rules-screen{padding:20px;overflow-y:auto}
+#rules-screen h2{margin:0 0 16px;font-size:20px}
+#rules-body{font-size:15px;line-height:1.6;color:#ccc}
+#rules-body p{margin:0 0 12px}
+#rules-body .flag-line{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#rules-body .flag-demo{width:18px;height:18px;border-radius:3px;flex-shrink:0}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;
+  z-index:9000;padding:24px;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-content{background:linear-gradient(135deg,#1f1f3a,#16213e);border-radius:16px;padding:16px;
+  width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;border:1px solid rgba(255,255,255,.1)}
+.modal-content button{padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#eee;border-radius:10px;font-size:16px;cursor:pointer;font-family:inherit;text-align:left;
+  display:flex;justify-content:space-between;align-items:center}
+.modal-content button.active{background:rgba(46,204,113,.2);border-color:#2ecc71}
+.modal-content button:active{background:rgba(255,255,255,.15)}
+
+/* Confetti */
+.confetti{position:fixed;top:-20px;z-index:9999;pointer-events:none;
+  animation:confetti-fall linear forwards;will-change:transform}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* Toast */
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+  background:rgba(0,0,0,.9);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;
+  opacity:0;transition:all .3s;pointer-events:none;z-index:10000;max-width:90%;text-align:center;
+  border:1px solid rgba(255,255,255,.1)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;flex-direction:column;
+  justify-content:center;align-items:center;z-index:9000;padding:24px;animation:fadeIn .3s}
+.win-card{background:linear-gradient(135deg,#1f1f3a,#16213e);border-radius:20px;padding:28px 24px;
+  text-align:center;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);border:1px solid rgba(255,255,255,.1)}
+@keyframes popIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.win-emoji{font-size:64px;margin-bottom:8px;animation:bounce .8s ease-in-out infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+.win-title{font-size:24px;font-weight:800;margin-bottom:6px}
+.win-sub{color:#aaa;margin-bottom:20px;font-size:14px}
+.win-actions{display:flex;flex-direction:column;gap:8px}
+.share-btn{padding:12px 20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  color:#eee;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s}
+.share-btn:active{background:rgba(255,255,255,.18)}
+.share-btn.primary{background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;font-weight:600}
+
+@media (max-width:360px){
+  .chip{width:34px;height:34px}
+  .slot{width:38px;height:38px}
+  #menu-screen h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="header">
+    <button id="back-btn" class="icon-btn hidden" aria-label="Back">←</button>
+    <div id="title">Color Daily</div>
+    <button id="restart-btn" class="icon-btn hidden" aria-label="Restart" title="Start over">🔄</button>
+    <button id="lang-btn" class="icon-btn" aria-label="Language">🌐</button>
+  </header>
+
+  <div id="menu-screen" class="screen">
+    <h1 id="menu-title"></h1>
+    <p class="subtitle" id="menu-subtitle"></p>
+    <button class="menu-btn" id="play-daily">
+      <span id="lbl-play-daily"></span>
+      <span id="daily-status" class="status-badge"></span>
+    </button>
+    <button class="menu-btn" id="play-unlimited"><span id="lbl-play-unlimited"></span></button>
+    <button class="menu-btn" id="open-stats"><span id="lbl-stats"></span></button>
+    <button class="menu-btn" id="open-rules"><span id="lbl-rules"></span></button>
+    <button class="menu-btn" id="open-donate"><span id="lbl-donate"></span></button>
+  </div>
+
+  <div id="setup-screen" class="screen hidden">
+    <div class="setup-field">
+      <label class="setup-label"><span id="lbl-setup-colors"></span>: <span id="colors-val">6</span></label>
+      <input type="range" id="colors-range" min="3" max="10" value="6" class="setup-input">
+    </div>
+    <div class="setup-field">
+      <label class="setup-label"><span id="lbl-setup-chips"></span>: <span id="chips-val">4</span></label>
+      <input type="range" id="chips-range" min="2" max="8" value="4" class="setup-input">
+    </div>
+    <div class="setup-field">
+      <label class="setup-label"><span id="lbl-setup-attempts"></span>: <span id="attempts-val">10</span></label>
+      <input type="range" id="attempts-range" min="3" max="15" value="10" class="setup-input">
+    </div>
+    <div class="setup-field">
+      <label class="setup-checkbox">
+        <input type="checkbox" id="repeats-check">
+        <span id="lbl-setup-repeats"></span>
+      </label>
+    </div>
+    <button class="menu-btn center" id="start-unlimited" style="max-width:100%;margin-top:8px"></button>
+  </div>
+
+  <div id="game-screen" class="screen hidden">
+    <div id="game-info"></div>
+    <div id="countdown"></div>
+    <div id="attempts-area"></div>
+    <div id="input-area">
+      <div id="current-chips"></div>
+      <div id="palette"></div>
+      <button id="submit-btn" disabled></button>
+    </div>
+    <div id="game-over-controls" class="hidden">
+      <button id="share-result-btn" class="menu-btn center"></button>
+      <button id="new-game-btn" class="menu-btn center hidden"></button>
+      <button id="go-home-btn" class="menu-btn center"></button>
+    </div>
+  </div>
+
+  <div id="stats-screen" class="screen hidden">
+    <div class="stats-note" id="stats-only-daily"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="dist-title" id="stats-dist-title"></div>
+    <div id="distribution"></div>
+    <button class="menu-btn center" id="reset-stats" style="margin-top:24px"></button>
+  </div>
+
+  <div id="rules-screen" class="screen hidden">
+    <h2 id="rules-title"></h2>
+    <div id="rules-body"></div>
+  </div>
+</div>
+
+<div id="lang-modal" class="modal hidden">
+  <div class="modal-content">
+    <button data-lang="en">English <span class="status-badge">EN</span></button>
+    <button data-lang="ru">Русский <span class="status-badge">RU</span></button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const CONFIG = {
+  startDate: '2026-10-23', // Поставьте реальную дату запуска
+  resetOffsetHours: 0,     // 0 = UTC
+  apiUrl: '',              // URL бэкенда (если есть)
+  yandexMetrikaId: '',     // Номер счётчика
+  donateUrl: 'https://app.lava.top/jacobzln',
+  shareBrand: 'Color Daily',
+};
+
+/* ============================================================
+   i18n
+   ============================================================ */
+const I18N = {
+  en: {
+    title: 'Color Daily',
+    menu_title: '🌈 Color Daily',
+    menu_subtitle: 'Guess the 4-color code in 10 tries',
+    play_daily: 'Daily puzzle',
+    play_unlimited: 'Unlimited mode',
+    unlimited_title: 'Unlimited',
+    resume: 'Resume',
+    stats: 'Statistics',
+    rules: 'How to play',
+    donate: 'Support the game',
+    status_new: 'NEW',
+    status_won: '✓ done',
+    status_lost: '✗ done',
+    attempt_n: 'Attempt {n} of {m}',
+    attempt_win: 'Solved in {n} tries',
+    attempt_lose: 'Not solved. New puzzle tomorrow',
+    submit: 'Submit',
+    selected: 'Selected {n}/{m}',
+    next_in: '⏱ Next puzzle in {t}',
+    win_1_t: '🌟 Absolute Legend!', win_1_s: 'First try!',
+    win_2_t: '🎯 Sniper!',          win_2_s: 'Two tries!',
+    win_3_t: '🔥 On Fire!',         win_3_s: 'Three tries!',
+    win_4_t: '✨ Excellent!',        win_4_s: 'Four tries!',
+    win_5_t: '👍 Great Job!',        win_5_s: 'Five tries!',
+    win_6_t: '😊 Good!',            win_6_s: 'Six tries!',
+    win_7_t: '🤔 Got it!',          win_7_s: 'Seven tries!',
+    win_8_t: '😅 Phew!',            win_8_s: 'Eight tries!',
+    win_9_t: '🫣 Down to the wire!', win_9_s: 'Nine tries! One left...',
+    win_10_t: '😎 Clutch!',         win_10_s: 'Last try! Heroic!',
+    win_default_t: '🎉 Solved!',    win_default_s: 'In {n} tries',
+    lose_title: '🤷‍♂️ Not solved', lose_sub: 'Better luck tomorrow',
+    stats_only_daily: 'Only the daily puzzle counts',
+    stats_played: 'Played', stats_won: 'Won ({p}%)',
+    stats_streak: 'Current streak', stats_best: 'Best streak',
+    stats_rating: 'Rating',
+    stats_dist_title: 'Guess distribution',
+    reset_stats: 'Reset stats',
+    reset_confirm: 'Reset all statistics?',
+    stats_reset_ok: 'Statistics reset',
+    rules_title: 'How to play',
+    rules_body_html: `
+      <p>Guess the hidden 4-color code in 10 tries.</p>
+      <p>Tap colors from the palette to fill the slots. Tap a filled slot to remove that chip.</p>
+      <p>After each guess you'll see 4 flags:</p>
+      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>Right color, right position</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>Right color, wrong position</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>Color is not in the code</span></div>
+      <p style="margin-top:16px;color:#888;font-size:13px">Flags are not tied to specific chips — they show only the set of results.</p>
+      <p style="color:#888;font-size:13px">New puzzle every day at 00:00 UTC. Same puzzle for all players.</p>
+    `,
+    share: 'Share result',
+    share_copy: 'Copy as text',
+    share_copied: 'Copied!',
+    share_downloaded: 'Image downloaded',
+    share_failed: 'Sharing failed',
+    share_title: 'Color Daily #{n}',
+    share_result_win: 'Solved in {n}',
+    share_result_lose: 'Not solved',
+    new_game: 'New practice game',
+    new_game_confirm: 'Start a new game? Current progress will be lost.',
+    go_home: 'Home',
+    setup_title: 'Practice settings',
+    setup_colors: 'Colors', setup_chips: 'Chips', setup_attempts: 'Attempts',
+    setup_repeats: 'Allow repeated colors',
+    start_game: 'Start game',
+    too_many_chips: 'More chips than colors',
+    lang_modal_title: 'Language',
+    donate_clicked: 'Thanks for your support!',
+  },
+  ru: {
+    title: 'Цвет дня',
+    menu_title: '🌈 Цвет дня',
+    menu_subtitle: 'Угадай набор из 4 цветов за 10 попыток',
+    play_daily: 'Игра дня',
+    play_unlimited: 'Безлимитный режим',
+    unlimited_title: 'Безлимит',
+    resume: 'Продолжить',
+    stats: 'Статистика',
+    rules: 'Правила',
+    donate: 'Поддержать',
+    status_new: 'НОВОЕ',
+    status_won: '✓ пройдено',
+    status_lost: '✗ пройдено',
+    attempt_n: 'Попытка {n} из {m}',
+    attempt_win: 'Угадано за {n} попыток',
+    attempt_lose: 'Не угадано. Новый набор — завтра',
+    submit: 'Отправить',
+    selected: 'Выбрано {n}/{m}',
+    next_in: '⏱ До нового набора: {t}',
+    win_1_t: '🌟 Абсолютная легенда!', win_1_s: 'С первой попытки!',
+    win_2_t: '🎯 Снайпер!',            win_2_s: 'Две попытки!',
+    win_3_t: '🔥 Огонь!',              win_3_s: 'Три попытки!',
+    win_4_t: '✨ Отлично!',             win_4_s: 'Четыре попытки!',
+    win_5_t: '👍 Молодец!',             win_5_s: 'Пять попыток!',
+    win_6_t: '😊 Хорошо!',             win_6_s: 'Шесть попыток!',
+    win_7_t: '🤔 Вдумчиво!',           win_7_s: 'Семь попыток!',
+    win_8_t: '😅 Уф, почти!',          win_8_s: 'Восемь попыток!',
+    win_9_t: '🫣 На грани!',           win_9_s: 'Девять попыток! Остался один шанс...',
+    win_10_t: '😎 Клатч!',             win_10_s: 'На последней попытке! Герой!',
+    win_default_t: '🎉 Угадано!',       win_default_s: 'За {n} попыток',
+    lose_title: '🤷‍♂️ Не угадано', lose_sub: 'Повезёт завтра',
+    stats_only_daily: 'Учитывается только игра дня',
+    stats_played: 'Сыграно', stats_won: 'Побед ({p}%)',
+    stats_streak: 'Серия сейчас', stats_best: 'Лучшая серия',
+    stats_rating: 'Рейтинг',
+    stats_dist_title: 'Распределение по попыткам',
+    reset_stats: 'Сбросить статистику',
+    reset_confirm: 'Сбросить всю статистику?',
+    stats_reset_ok: 'Статистика сброшена',
+    rules_title: 'Правила игры',
+    rules_body_html: `
+      <p>Угадайте скрытый набор из 4 цветов за 10 попыток.</p>
+      <p>Тапайте по палитре, чтобы заполнить слоты. Тап по заполненному слоту — убрать фишку.</p>
+      <p>После каждой попытки показываются 4 флажка:</p>
+      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>Цвет есть и на своём месте</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>Цвет есть, но не на своём месте</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>Цвета нет в наборе</span></div>
+      <p style="margin-top:16px;color:#888;font-size:13px">Флажки не привязаны к конкретным фишкам — они показывают только набор результатов.</p>
+      <p style="color:#888;font-size:13px">Новый набор каждый день в 00:00 UTC. Один и тот же для всех игроков.</p>
+    `,
+    share: 'Поделиться результатом',
+    share_copy: 'Скопировать текстом',
+    share_copied: 'Скопировано!',
+    share_downloaded: 'Картинка скачана',
+    share_failed: 'Не удалось поделиться',
+    share_title: 'Цвет дня #{n}',
+    share_result_win: 'Угадано за {n}',
+    share_result_lose: 'Не угадано',
+    new_game: 'Новая игра',
+    new_game_confirm: 'Начать новую игру? Текущий прогресс будет потерян.',
+    go_home: 'Домой',
+    setup_title: 'Настройки тренировки',
+    setup_colors: 'Цветов', setup_chips: 'Фишек', setup_attempts: 'Попыток',
+    setup_repeats: 'Разрешить повторение цветов',
+    start_game: 'Начать игру',
+    too_many_chips: 'Фишек больше, чем цветов',
+    lang_modal_title: 'Язык',
+    donate_clicked: 'Спасибо за поддержку!',
+  }
+};
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const COLORS = [
+  { hex:'#e74c3c' }, { hex:'#3498db' }, { hex:'#2ecc71' },
+  { hex:'#f1c40f' }, { hex:'#9b59b6' }, { hex:'#e67e22' },
+  { hex:'#ff6b9d' }, { hex:'#00d4ff' }, { hex:'#8b4513' },
+  { hex:'#95a5a6' },
+];
+const DAILY = { COLORS:6, CHIPS:4, ATTEMPTS:10 };
+
+const KEYS = {
+  daily:'cd_daily_v2',
+  stats:'cd_stats_v2',
+  lang:'cd_lang',
+  uid:'cd_uid',
+  unlimited:'cd_unlimited_v2',
+};
+
+let currentLang = 'en';
+let game = null;
+let currentScreen = 'menu';
+let stats = null;
+let tg = null;
+let countdownInterval = null;
+
+const $ = s => document.querySelector(s);
+
+function t(key, vars) {
+  const dict = I18N[currentLang] || I18N.en;
+  let s = dict[key] !== undefined ? dict[key] : (I18N.en[key] || key);
+  if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+function hashString(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function pad2(n) { return String(n).padStart(2, '0'); }
+function toast(msg, dur = 2200) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function getUtcDayInfo() {
+  const now = new Date();
+  const shifted = new Date(now.getTime() + CONFIG.resetOffsetHours * 3600000);
+  const dateStr = shifted.toISOString().slice(0, 10);
+  const start = new Date(CONFIG.startDate + 'T00:00:00Z');
+  const today = new Date(dateStr + 'T00:00:00Z');
+  const dayNum = Math.floor((today - start) / 86400000) + 1;
+  return { dateStr, dayNum };
+}
+function msUntilNextDay() {
+  const now = new Date();
+  const shifted = new Date(now.getTime() + CONFIG.resetOffsetHours * 3600000);
+  const next = new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate() + 1));
+  return next.getTime() - shifted.getTime();
+}
+function formatCountdown(ms) {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms / 1000);
+  return `${pad2(Math.floor(s / 3600))}:${pad2(Math.floor((s % 3600) / 60))}:${pad2(s % 60)}`;
+}
+function getUserId() {
+  let uid = localStorage.getItem(KEYS.uid);
+  if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem(KEYS.uid, uid); }
+  return uid;
+}
+function trackEvent(name, data = {}) {
+  try {
+    const payload = { event: name, userId: getUserId(), ts: Date.now(), day: getUtcDayInfo().dayNum, lang: currentLang, ...data };
+    if (window.ym && CONFIG.yandexMetrikaId) { try { window.ym(CONFIG.yandexMetrikaId, 'reachGoal', name, data); } catch(e) {} }
+    if (CONFIG.apiUrl) {
+      const body = JSON.stringify(payload);
+      try { fetch(CONFIG.apiUrl + '/event', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {}); }
+      catch(e) { if (navigator.sendBeacon) navigator.sendBeacon(CONFIG.apiUrl + '/event', body); }
+    }
+  } catch(e) {}
+}
+function initYandexMetrika(id) {
+  if (!id) return;
+  (function(m, e, t, r, i, k, a) {
+    m[i] = m[i] || function() { (m[i].a = m[i].a || []).push(arguments); };
+    m[i].l = 1 * new Date();
+    for (let j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) return; }
+    k = e.createElement(t); a = e.getElementsByTagName(t)[0]; k.async = 1; k.src = r; a.parentNode.insertBefore(k, a);
+  })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+  window.ym(id, 'init', { clickmap: true, trackLinks: true, accurateTrackBounce: true });
+}
+
+/* ============================================================
+   LANGUAGE
+   ============================================================ */
+function detectLang() {
+  const saved = localStorage.getItem(KEYS.lang);
+  if (saved && I18N[saved]) return saved;
+  const nav = (navigator.language || 'en').toLowerCase();
+  if (nav.startsWith('ru')) return 'ru';
+  return 'en';
+}
+function setLang(lang) {
+  if (!I18N[lang]) return;
+  const prev = currentLang;
+  currentLang = lang;
+  localStorage.setItem(KEYS.lang, lang);
+  document.documentElement.lang = lang;
+  applyTranslations();
+  if (prev !== lang) trackEvent('lang_changed', { from: prev, to: lang });
+}
+function applyTranslations() {
+  document.title = t('title');
+  $('#title').textContent = currentScreen === 'menu' ? t('title') : getScreenTitle();
+  $('#menu-title').textContent = t('menu_title');
+  $('#menu-subtitle').textContent = t('menu_subtitle');
+  $('#lbl-play-daily').textContent = t('play_daily');
+  $('#lbl-stats').textContent = t('stats');
+  $('#lbl-rules').textContent = t('rules');
+  $('#lbl-donate').textContent = t('donate');
+  $('#lbl-setup-colors').textContent = t('setup_colors');
+  $('#lbl-setup-chips').textContent = t('setup_chips');
+  $('#lbl-setup-attempts').textContent = t('setup_attempts');
+  $('#lbl-setup-repeats').textContent = t('setup_repeats');
+  $('#start-unlimited').textContent = t('start_game');
+  $('#rules-title').textContent = t('rules_title');
+  $('#rules-body').innerHTML = t('rules_body_html');
+  $('#stats-only-daily').textContent = t('stats_only_daily');
+  $('#stats-dist-title').textContent = t('stats_dist_title');
+  $('#reset-stats').textContent = t('reset_stats');
+  $('#share-result-btn').textContent = t('share');
+  $('#new-game-btn').textContent = t('new_game');
+  $('#go-home-btn').textContent = t('go_home');
+  document.querySelectorAll('#lang-modal button').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === currentLang);
+  });
+  updateDailyStatus();
+  updateMenuButtons();
+  if (currentScreen === 'game' && game) renderGame();
+  if (currentScreen === 'stats') renderStats();
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function defaultStats() {
+  return { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, totalPoints: 0, distribution: {}, lastPlayedDate: null };
+}
+function loadStats() {
+  try { return Object.assign(defaultStats(), JSON.parse(localStorage.getItem(KEYS.stats)) || {}); }
+  catch { return defaultStats(); }
+}
+function saveStats() { localStorage.setItem(KEYS.stats, JSON.stringify(stats)); }
+function computeRating() { return stats.played === 0 ? 0 : Math.round((stats.totalPoints / stats.played) * 100); }
+function updateStatsAfterGame(won, attempts, todayStr) {
+  const yesterdayStr = new Date(new Date(todayStr + 'T00:00:00Z').getTime() - 86400000).toISOString().slice(0, 10);
+  stats.played++;
+  if (won) {
+    stats.wins++;
+    if (stats.lastPlayedDate === yesterdayStr) stats.currentStreak++;
+    else if (stats.lastPlayedDate !== todayStr) stats.currentStreak = 1;
+    if (stats.currentStreak > stats.maxStreak) stats.maxStreak = stats.currentStreak;
+    stats.totalPoints += Math.max(1, 11 - attempts);
+    stats.distribution[attempts] = (stats.distribution[attempts] || 0) + 1;
+  } else { stats.currentStreak = 0; }
+  stats.lastPlayedDate = todayStr;
+  saveStats();
+}
+
+/* ============================================================
+   GAME LOGIC
+   ============================================================ */
+function generateTarget(seed, numColors, numChips, allowRepeats) {
+  const rand = mulberry32(seed);
+  if (allowRepeats) return Array.from({ length: numChips }, () => Math.floor(rand() * numColors));
+  const pool = Array.from({ length: numColors }, (_, i) => i);
+  const target = [];
+  for (let i = 0; i < numChips; i++) { const idx = Math.floor(rand() * pool.length); target.push(pool[idx]); pool.splice(idx, 1); }
+  return target;
+}
+function checkGuess(target, guess) {
+  const n = target.length;
+  const result = new Array(n).fill('gray');
+  const tUsed = new Array(n).fill(false);
+  const gUsed = new Array(n).fill(false);
+  for (let i = 0; i < n; i++) { if (guess[i] === target[i]) { result[i] = 'green'; tUsed[i] = gUsed[i] = true; } }
+  for (let i = 0; i < n; i++) {
+    if (gUsed[i]) continue;
+    for (let j = 0; j < n; j++) {
+      if (tUsed[j]) continue;
+      if (guess[i] === target[j]) { result[i] = 'yellow'; tUsed[j] = true; break; }
+    }
+  }
+  const order = { green: 0, yellow: 1, gray: 2 };
+  return result.sort((a, b) => order[a] - order[b]);
+}
+
+/* ============================================================
+   SAVE/LOAD UNLIMITED GAME
+   ============================================================ */
+function loadUnlimitedState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEYS.unlimited));
+    if (saved && !saved.finished) return saved;
+  } catch(e) {}
+  return null;
+}
+function saveUnlimitedState() {
+  if (game && game.mode === 'unlimited') localStorage.setItem(KEYS.unlimited, JSON.stringify(game));
+}
+function clearUnlimitedState() {
+  localStorage.removeItem(KEYS.unlimited);
+}
+
+/* ============================================================
+   DAILY & UNLIMITED STARTERS
+   ============================================================ */
+function loadDailyState() { try { return JSON.parse(localStorage.getItem(KEYS.daily)); } catch { return null; } }
+function saveDailyState() {
+  if (!game || game.mode !== 'daily') return;
+  localStorage.setItem(KEYS.daily, JSON.stringify({ date: getUtcDayInfo().dateStr, target: game.target, attempts: game.attempts, finished: game.finished, won: game.won }));
+}
+function startDaily() {
+  const info = getUtcDayInfo();
+  const saved = loadDailyState();
+  if (saved && saved.date === info.dateStr) {
+    game = { mode:'daily', target:saved.target, attempts:saved.attempts||[], current:[], maxAttempts:DAILY.ATTEMPTS, numColors:DAILY.COLORS, numChips:DAILY.CHIPS, allowRepeats:false, finished:!!saved.finished, won:!!saved.won, date:info.dateStr, dayNum:info.dayNum };
+  } else {
+    game = { mode:'daily', target:generateTarget(hashString('color-daily-'+info.dateStr), DAILY.COLORS, DAILY.CHIPS, false), attempts:[], current:[], maxAttempts:DAILY.ATTEMPTS, numColors:DAILY.COLORS, numChips:DAILY.CHIPS, allowRepeats:false, finished:false, won:false, date:info.dateStr, dayNum:info.dayNum };
+    saveDailyState();
+    trackEvent('game_start', { mode: 'daily' });
+  }
+  renderGame();
+  showScreen('game');
+}
+function startUnlimited() {
+  const numColors = +$('#colors-range').value, numChips = +$('#chips-range').value, maxAttempts = +$('#attempts-range').value, allowRepeats = $('#repeats-check').checked;
+  if (!allowRepeats && numChips > numColors) { toast(t('too_many_chips')); return; }
+  const seed = Math.floor(Math.random() * 2 ** 31);
+  game = { mode:'unlimited', target:generateTarget(seed, numColors, numChips, allowRepeats), attempts:[], current:[], maxAttempts, numColors, numChips, allowRepeats, finished:false, won:false, date:null, dayNum:null };
+  saveUnlimitedState();
+  trackEvent('game_start', { mode: 'unlimited', colors: numColors, chips: numChips });
+  renderGame();
+  showScreen('game');
+}
+function validateSetup() {
+  const colors = +$('#colors-range').value, chips = +$('#chips-range').value, repeats = $('#repeats-check').checked;
+  const btn = $('#start-unlimited');
+  if (!repeats && chips > colors) { btn.disabled = true; btn.textContent = `${t('too_many_chips')} (${chips} > ${colors})`; }
+  else { btn.disabled = false; btn.textContent = t('start_game'); }
+}
+
+/* ============================================================
+   SCREEN MANAGEMENT
+   ============================================================ */
+function getScreenTitle() {
+  switch (currentScreen) {
+    case 'menu': return t('title');
+    case 'setup': return t('setup_title');
+    case 'game': return !game ? t('title') : (game.mode === 'daily' ? `${t('play_daily')} #${game.dayNum}` : t('unlimited_title'));
+    case 'stats': return t('stats');
+    case 'rules': return t('rules_title');
+    default: return t('title');
+  }
+}
+function showScreen(name) {
+  currentScreen = name;
+  ['menu', 'setup', 'game', 'stats', 'rules'].forEach(k => {
+    const el = document.getElementById(k + '-screen');
+    if (el) el.classList.toggle('hidden', k !== name);
+  });
+  $('#back-btn').classList.toggle('hidden', name === 'menu');
+  $('#restart-btn').classList.toggle('hidden', !(name === 'game' && game && game.mode === 'unlimited'));
+  $('#title').textContent = getScreenTitle();
+  if (name === 'menu') { updateDailyStatus(); updateMenuButtons(); }
+  if (name === 'stats') renderStats();
+  if (name === 'game' && game) { if (game.mode === 'daily') startCountdown(); else stopCountdown(); }
+  else stopCountdown();
+  if (tg?.BackButton) { if (name === 'menu') tg.BackButton.hide(); else tg.BackButton.show(); }
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderGame(opts = {}) {
+  if (!game) return;
+  const info = $('#game-info');
+  if (game.finished) info.textContent = game.won ? t('attempt_win', { n: game.attempts.length }) : t('attempt_lose');
+  else info.textContent = t('attempt_n', { n: game.attempts.length + 1, m: game.maxAttempts });
+
+  const area = $('#attempts-area');
+  area.innerHTML = '';
+  game.attempts.forEach((att, idx) => area.appendChild(createAttemptRow(att, opts.animate && idx === game.attempts.length - 1)));
+  setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+
+  if (game.finished) {
+    $('#input-area').classList.add('hidden');
+    $('#game-over-controls').classList.remove('hidden');
+    $('#new-game-btn').classList.toggle('hidden', game.mode === 'daily');
+    $('#share-result-btn').classList.toggle('hidden', game.mode !== 'daily');
+    $('#countdown').style.visibility = game.mode === 'daily' ? 'visible' : 'hidden';
+  } else {
+    $('#input-area').classList.remove('hidden');
+    $('#game-over-controls').classList.add('hidden');
+    renderCurrent();
+    renderPalette();
+    updateSubmit();
+  }
+  $('#title').textContent = getScreenTitle();
+  $('#restart-btn').classList.toggle('hidden', !(currentScreen === 'game' && game.mode === 'unlimited'));
+}
+function createAttemptRow(attempt, isNew) {
+  const row = document.createElement('div'); row.className = 'attempt-row';
+  const chips = document.createElement('div'); chips.className = 'attempt-chips';
+  attempt.guess.forEach((c, i) => {
+    const chip = document.createElement('div'); chip.className = 'chip'; chip.style.setProperty('--chip-color', COLORS[c].hex);
+    if (isNew) { chip.classList.add('reveal'); chip.style.animationDelay = (i * 70) + 'ms'; }
+    chips.appendChild(chip);
+  });
+  const flags = document.createElement('div'); flags.className = 'attempt-flags';
+  attempt.flags.forEach((f, i) => {
+    const flag = document.createElement('div'); flag.className = 'flag ' + f;
+    if (isNew) { flag.classList.add('reveal'); flag.style.animationDelay = (attempt.guess.length * 70 + 80 + i * 70) + 'ms'; }
+    flags.appendChild(flag);
+  });
+  row.appendChild(chips); row.appendChild(flags); return row;
+}
+function renderCurrent(animateIndex = -1) {
+  const c = $('#current-chips'); c.innerHTML = '';
+  for (let i = 0; i < game.numChips; i++) {
+    const slot = document.createElement('div'); slot.className = 'slot';
+    if (i < game.current.length) {
+      slot.classList.add('filled'); slot.style.setProperty('--chip-color', COLORS[game.current[i]].hex);
+      if (i === animateIndex) slot.classList.add('pop');
+      slot.addEventListener('click', () => removeCurrentChip(i));
+    }
+    c.appendChild(slot);
+  }
+}
+function renderPalette() {
+  const p = $('#palette'); p.innerHTML = '';
+  for (let i = 0; i < game.numColors; i++) {
+    const btn = document.createElement('button'); btn.className = 'color-btn'; btn.style.setProperty('--chip-color', COLORS[i].hex);
+    btn.disabled = game.finished || game.current.length >= game.numChips;
+    btn.addEventListener('click', () => addCurrentChip(i)); p.appendChild(btn);
+  }
+}
+function addCurrentChip(colorIdx) {
+  if (!game || game.finished || game.animating || game.current.length >= game.numChips) return;
+  game.current.push(colorIdx); renderCurrent(game.current.length - 1); renderPalette(); updateSubmit();
+}
+function removeCurrentChip(idx) {
+  if (!game || game.finished || game.animating) return;
+  game.current.splice(idx, 1); renderCurrent(); renderPalette(); updateSubmit();
+}
+function updateSubmit() {
+  const btn = $('#submit-btn'), n = game.current.length;
+  btn.disabled = n !== game.numChips; btn.textContent = n === game.numChips ? t('submit') : t('selected', { n, m: game.numChips });
+}
+
+/* ============================================================
+   COUNTDOWN
+   ============================================================ */
+function startCountdown() { stopCountdown(); updateCountdown(); countdownInterval = setInterval(updateCountdown, 1000); }
+function stopCountdown() { if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; } $('#countdown').textContent = ''; }
+function updateCountdown() { if (game && game.mode === 'daily') $('#countdown').textContent = t('next_in', { t: formatCountdown(msUntilNextDay()) }); }
+
+/* ============================================================
+   SUBMIT
+   ============================================================ */
+async function submitGuess() {
+  if (!game || game.finished || game.animating || game.current.length !== game.numChips) return;
+  game.animating = true;
+  const guess = [...game.current], flags = checkGuess(game.target, guess);
+
+  await sleep(150); // Короткая пауза для визуального отклика, без дрожания
+
+  game.attempts.push({ guess, flags });
+  game.current = [];
+  const isWin = flags.every(f => f === 'green'), isLast = game.attempts.length >= game.maxAttempts;
+
+  if (isWin) {
+    game.won = true; game.finished = true;
+    if (game.mode === 'daily') updateStatsAfterGame(true, game.attempts.length, game.date);
+    trackEvent('game_win', { mode: game.mode, attempts: game.attempts.length });
+  } else if (isLast) {
+    game.won = false; game.finished = true;
+    if (game.mode === 'daily') updateStatsAfterGame(false, game.attempts.length, game.date);
+    trackEvent('game_lose', { mode: game.mode, attempts: game.attempts.length });
+  }
+
+  if (game.mode === 'daily') saveDailyState();
+  else if (game.mode === 'unlimited') saveUnlimitedState();
+
+  renderGame({ animate: true });
+  await sleep(game.numChips * 140 + 350);
+  game.animating = false;
+
+  if (game.won) { spawnConfetti(); showWinOverlay(); }
+  else if (game.finished) setTimeout(showLoseOverlay, 150);
+}
+
+/* ============================================================
+   OVERLAYS
+   ============================================================ */
+function showWinOverlay() {
+  const n = game.attempts.length;
+  // Ограничиваем индекс 10-ю попытками. Если попыток больше 10 (в безлимите), сработает win_default.
+  const keyNum = Math.min(n, 10);
+  
+  let tk = `win_${keyNum}_t`;
+  let sk = `win_${keyNum}_s`;
+  
+  // Страховка, если вдруг ключа нет
+  if (I18N[currentLang][tk] === undefined) { tk = 'win_default_t'; sk = 'win_default_s'; }
+  
+  // Выбираем смайлик для большой иконки сверху карточки
+  let bigEmoji = '😊';
+  if (n === 1) bigEmoji = '🌟';
+  else if (n <= 3) bigEmoji = '🎉';
+  else if (n >= 9) bigEmoji = '😎';
+  
+  showOverlay(bigEmoji, t(tk), t(sk, { n }), true);
+}
+function showLoseOverlay() { showOverlay('🤷‍♂️', t('lose_title'), t('lose_sub'), false); }
+function showOverlay(emoji, title, sub, isWin) {
+  const overlay = document.createElement('div'); overlay.className = 'overlay';
+  overlay.innerHTML = `
+    <div class="win-card">
+      <div class="win-emoji">${escapeHtml(emoji)}</div>
+      <div class="win-title">${escapeHtml(title)}</div>
+      <div class="win-sub">${escapeHtml(sub)}</div>
+      <div class="win-actions">
+        <button class="share-btn primary" data-act="share">${escapeHtml(t('share'))}</button>
+        <button class="share-btn" data-act="copy">${escapeHtml(t('share_copy'))}</button>
+        ${game.mode === 'unlimited' ? `<button class="share-btn" data-act="new">${escapeHtml(t('new_game'))}</button>` : ''}
+        <button class="share-btn" data-act="close">OK</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', async (e) => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'share') await shareImage();
+    else if (act === 'copy') await copyText();
+    else if (act === 'new') { overlay.remove(); showScreen('setup'); }
+    else if (act === 'close' || e.target === overlay) overlay.remove();
+  });
+}
+function spawnConfetti() {
+  const palette = COLORS.map(c => c.hex);
+  for (let i = 0; i < 140; i++) {
+    const el = document.createElement('div'); el.className = 'confetti'; const size = 6 + Math.random() * 10;
+    el.style.left = Math.random() * 100 + 'vw'; el.style.width = size + 'px'; el.style.height = size + 'px';
+    el.style.background = palette[Math.floor(Math.random() * palette.length)];
+    el.style.borderRadius = Math.random() > 0.4 ? '50%' : '2px';
+    el.style.animationDelay = (Math.random() * 0.6) + 's'; el.style.animationDuration = (1.8 + Math.random() * 2) + 's';
+    document.body.appendChild(el); setTimeout(() => el.remove(), 5000);
+  }
+}
+
+/* ============================================================
+   SHARE
+   ============================================================ */
+function buildShareText() {
+  const lines = [`${t('share_title', { n: game.dayNum || '∞' })}`];
+  game.attempts.forEach(att => lines.push(att.flags.map(f => f === 'green' ? '🟩' : f === 'yellow' ? '🟨' : '⬛').join('')));
+  lines.push(game.won ? t('share_result_win', { n: game.attempts.length }) : t('share_result_lose'));
+  lines.push(CONFIG.shareBrand);
+  return lines.join('\n');
+}
+async function copyText() {
+  try { await navigator.clipboard.writeText(buildShareText()); toast(t('share_copied')); trackEvent('share_copied', { mode: game.mode }); }
+  catch { toast(t('share_failed')); }
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function drawShareImage() {
+  return new Promise((resolve) => {
+    const W = 1080, H = 1350, canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, W, H); grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(t('share_title', { n: game.dayNum || '∞' }), W / 2, 140);
+    const cols = game.numChips, rows = game.attempts.length, cell = 110, gap = 22;
+    const startX = (W - (cols * cell + (cols - 1) * gap)) / 2, startY = 260;
+    game.attempts.forEach((att, r) => {
+      att.flags.forEach((flag, c) => {
+        const x = startX + c * (cell + gap), y = startY + r * (cell + gap);
+        ctx.fillStyle = flag === 'green' ? '#2ecc71' : flag === 'yellow' ? '#f1c40f' : '#4a4a4a';
+        roundRect(ctx, x, y, cell, cell, 20); ctx.fill();
+      });
+    });
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 46px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.fillText(game.won ? t('share_result_win', { n: game.attempts.length }) : t('share_result_lose'), W / 2, startY + (rows * cell + (rows - 1) * gap) + 100);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.font = '30px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+    ctx.fillText(CONFIG.shareBrand, W / 2, H - 70);
+    canvas.toBlob(resolve, 'image/png');
+  });
+}
+async function shareImage() {
+  try {
+    const blob = await drawShareImage();
+    if (!blob) { await copyText(); return; }
+    const file = new File([blob], `color-daily-${game.dayNum || 'unlimited'}.png`, { type: 'image/png' });
+    const title = t('share_title', { n: game.dayNum || '∞' }), text = game.won ? t('share_result_win', { n: game.attempts.length }) : t('share_result_lose');
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title, text }); trackEvent('share_image', { mode: game.mode, via: 'webshare' }); return; }
+      catch (err) { if (err.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = `color-daily-${game.dayNum || 'unlimited'}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast(t('share_downloaded')); trackEvent('share_image', { mode: game.mode, via: 'download' });
+    try { await navigator.clipboard.writeText(text); } catch(e) {}
+  } catch (e) { toast(t('share_failed')); }
+}
+
+/* ============================================================
+   MENU & STATS
+   ============================================================ */
+function updateDailyStatus() {
+  const badge = $('#daily-status'), info = getUtcDayInfo(), saved = loadDailyState();
+  if (!saved || saved.date !== info.dateStr) { badge.textContent = t('status_new'); badge.className = 'status-badge'; return; }
+  if (saved.finished) { badge.textContent = saved.won ? t('status_won') : t('status_lost'); badge.className = 'status-badge ' + (saved.won ? 'won' : 'lost'); }
+  else { badge.textContent = `${(saved.attempts?.length || 0)}/${DAILY.ATTEMPTS}`; badge.className = 'status-badge'; }
+}
+function updateMenuButtons() {
+  const saved = loadUnlimitedState();
+  $('#lbl-play-unlimited').textContent = saved ? `${t('resume')} (${t('play_unlimited')})` : t('play_unlimited');
+}
+function renderStats() {
+  const winRate = stats.played ? Math.round(stats.wins / stats.played * 100) : 0;
+  $('#stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${stats.played}</div><div class="stat-label">${escapeHtml(t('stats_played'))}</div></div>
+    <div class="stat-card"><div class="stat-value">${stats.wins}</div><div class="stat-label">${escapeHtml(t('stats_won', { p: winRate }))}</div></div>
+    <div class="stat-card"><div class="stat-value">${stats.currentStreak}</div><div class="stat-label">${escapeHtml(t('stats_streak'))}</div></div>
+    <div class="stat-card"><div class="stat-value">${stats.maxStreak}</div><div class="stat-label">${escapeHtml(t('stats_best'))}</div></div>
+    <div class="stat-card" style="grid-column:span 2"><div class="stat-value rating">${computeRating()}</div><div class="stat-label">${escapeHtml(t('stats_rating'))}</div></div>`;
+  const dist = $('#distribution'); dist.innerHTML = ''; const maxVal = Math.max(1, ...Object.values(stats.distribution || {}));
+  for (let i = 1; i <= 10; i++) {
+    const count = stats.distribution[i] || 0, pct = count ? Math.max(8, Math.round(count / maxVal * 100)) : 0;
+    const row = document.createElement('div'); row.className = 'dist-row';
+    row.innerHTML = `<div class="dist-num">${i}</div><div class="dist-bar-container"><div class="dist-bar ${count ? '' : 'zero'}" style="width:${count ? pct + '%' : '100%'}">${count || 0}</div></div>`;
+    dist.appendChild(row);
+  }
+}
+
+/* ============================================================
+   EVENT BINDINGS
+   ============================================================ */
+function bindEvents() {
+  $('#back-btn').addEventListener('click', () => showScreen('menu'));
+  $('#lang-btn').addEventListener('click', () => { $('#lang-modal').classList.remove('hidden'); applyTranslations(); });
+  
+  // Меню
+  $('#play-daily').addEventListener('click', startDaily);
+  $('#play-unlimited').addEventListener('click', () => {
+    const saved = loadUnlimitedState();
+    if (saved) { game = saved; renderGame(); showScreen('game'); }
+    else {
+      $('#colors-range').value = 6; $('#chips-range').value = 4; $('#attempts-range').value = 10; $('#repeats-check').checked = false;
+      $('#colors-val').textContent = '6'; $('#chips-val').textContent = '4'; $('#attempts-val').textContent = '10';
+      validateSetup(); showScreen('setup');
+    }
+  });
+  $('#open-stats').addEventListener('click', () => { showScreen('stats'); trackEvent('stats_opened'); });
+  $('#open-rules').addEventListener('click', () => { showScreen('rules'); trackEvent('rules_opened'); });
+  $('#open-donate').addEventListener('click', () => {
+    trackEvent('donate_clicked'); toast(t('donate_clicked'));
+    if (tg && tg.openLink) { try { tg.openLink(CONFIG.donateUrl); return; } catch(e) {} }
+    window.open(CONFIG.donateUrl, '_blank', 'noopener');
+  });
+
+  // Кнопка "Заново" (Restart)
+  $('#restart-btn').addEventListener('click', () => {
+    if (confirm(t('new_game_confirm'))) {
+      clearUnlimitedState();
+      if (game) {
+        $('#colors-range').value = game.numColors; $('#chips-range').value = game.numChips;
+        $('#attempts-range').value = game.maxAttempts; $('#repeats-check').checked = game.allowRepeats;
+        $('#colors-val').textContent = game.numColors; $('#chips-val').textContent = game.numChips;
+        $('#attempts-val').textContent = game.maxAttempts;
+      }
+      game = null; validateSetup(); showScreen('setup');
+    }
+  });
+
+  // Настройки
+  ['colors-range', 'chips-range', 'attempts-range'].forEach(id => {
+    const el = $('#' + id);
+    el.addEventListener('input', () => { $('#' + id.replace('range', 'val')).textContent = el.value; validateSetup(); });
+  });
+  $('#repeats-check').addEventListener('change', validateSetup);
+  $('#start-unlimited').addEventListener('click', startUnlimited);
+
+  // Игра
+  $('#new-game-btn').addEventListener('click', () => { showScreen('setup'); });
+  $('#go-home-btn').addEventListener('click', () => showScreen('menu'));
+  $('#share-result-btn').addEventListener('click', shareImage);
+  $('#submit-btn').addEventListener('click', submitGuess);
+
+  // Статистика
+  $('#reset-stats').addEventListener('click', () => {
+    if (confirm(t('reset_confirm'))) { stats = defaultStats(); saveStats(); renderStats(); toast(t('stats_reset_ok')); trackEvent('stats_reset'); }
+  });
+
+  // Модалка языков
+  $('#lang-modal').addEventListener('click', (e) => {
+    if (e.target === $('#lang-modal')) { $('#lang-modal').classList.add('hidden'); return; }
+    const btn = e.target.closest('[data-lang]');
+    if (btn) { setLang(btn.dataset.lang); $('#lang-modal').classList.add('hidden'); }
+  });
+
+  // Клавиатура
+  document.addEventListener('keydown', (e) => {
+    if (currentScreen !== 'game' || !game || game.finished) return;
+    if (e.key === 'Enter' && !$('#submit-btn').disabled) submitGuess();
+    else if (e.key === 'Backspace' && game.current.length > 0) { e.preventDefault(); removeCurrentChip(game.current.length - 1); }
+    else if (/^[1-9]$/.test(e.key)) { const idx = parseInt(e.key) - 1; if (idx < game.numColors) addCurrentChip(idx); }
+  });
+
+  // Запрет зума по двойному тапу
+  let lastTouch = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now(); if (now - lastTouch <= 300) e.preventDefault(); lastTouch = now;
+  }, { passive: false });
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function boot() {
+  currentLang = detectLang();
+  document.documentElement.lang = currentLang;
+  stats = loadStats();
+  bindEvents();
+  applyTranslations();
+  showScreen('menu');
+  if (CONFIG.yandexMetrikaId) initYandexMetrika(CONFIG.yandexMetrikaId);
+  trackEvent('app_open', { mode: 'session', savedDay: loadDailyState()?.date || null });
+  if (window.Telegram?.WebApp) {
+    tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+    try { tg.setHeaderColor('#1a1a2e'); tg.setBackgroundColor('#1a1a2e'); } catch(e) {}
+    if (tg.BackButton) tg.BackButton.onClick(() => { if (currentScreen !== 'menu') showScreen('menu'); });
+  }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+</script>
+</body>
+</html>
