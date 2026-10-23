@@ -1090,8 +1090,13 @@ function buildShareText() {
   return lines.join('\n');
 }
 async function copyText() {
-  try { await navigator.clipboard.writeText(buildShareText()); toast(t('share_copied')); trackEvent('share_copied', { mode: game.mode }); }
-  catch { toast(t('share_failed')); }
+  try { 
+    await navigator.clipboard.writeText(buildShareText());
+    toast(t('share_copied')); 
+  }
+  catch { 
+    toast(t('share_failed')); 
+  }
 }
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -1126,19 +1131,61 @@ async function shareImage() {
   try {
     const blob = await drawShareImage();
     if (!blob) { await copyText(); return; }
-    const file = new File([blob], `color-daily-${game.dayNum || 'unlimited'}.png`, { type: 'image/png' });
-    const title = t('share_title', { n: game.dayNum || '∞' }), text = game.won ? t('share_result_win', { n: game.attempts.length }) : t('share_result_lose');
+
+    const file = new File([blob], `color-daily.png`, { type: 'image/png' });
+    const title = t('share_title', { n: game.dayNum || '∞' });
+    const text = buildShareText();
+
+    // Пытаемся вызвать системное окно "Поделиться"
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title, text }); trackEvent('share_image', { mode: game.mode, via: 'webshare' }); return; }
-      catch (err) { if (err.name === 'AbortError') return; }
+      try {
+        await navigator.share({ files: [file], title, text });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // Пользователь сам отменил
+      }
     }
-    const url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = `color-daily-${game.dayNum || 'unlimited'}.png`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    toast(t('share_downloaded')); trackEvent('share_image', { mode: game.mode, via: 'download' });
-    try { await navigator.clipboard.writeText(text); } catch(e) {}
-  } catch (e) { toast(t('share_failed')); }
+    
+    // Если Telegram заблокировал системный шаринг, показываем картинку прямо на экране
+    showImageModal(blob, text);
+
+  } catch (e) {
+    await copyText();
+  }
+}
+
+// Новая функция для показа картинки на экране
+function showImageModal(blob, shareText) {
+  const url = URL.createObjectURL(blob);
+  const overlay = document.createElement('div'); 
+  overlay.className = 'overlay';
+  
+  overlay.innerHTML = `
+    <div class="win-card" style="padding: 16px;">
+      <div class="win-sub" style="margin-bottom: 12px; color: #fff; font-weight: 600;">
+        Удерживайте картинку, чтобы сохранить
+      </div>
+      <img src="${url}" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+      <div class="win-actions" style="margin-top: 16px;">
+        <button class="share-btn primary" data-act="copy">${escapeHtml(t('share_copy'))}</button>
+        <button class="share-btn" data-act="close">OK</button>
+      </div>
+    </div>`;
+    
+  document.body.appendChild(overlay);
+  
+  overlay.addEventListener('click', async (e) => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'copy') {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast(t('share_copied'));
+      } catch(err) {}
+    } else if (act === 'close' || e.target === overlay) {
+      overlay.remove();
+      URL.revokeObjectURL(url);
+    }
+  });
 }
 
 /* ============================================================
