@@ -315,6 +315,7 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
   <div class="modal-content">
     <button data-lang="en">English <span class="status-badge">EN</span></button>
     <button data-lang="ru">Русский <span class="status-badge">RU</span></button>
+    <button data-lang="th">ไทย <span class="status-badge">TH</span></button> <!-- ДОБАВИТЬ ВОТ ЭТУ СТРОКУ -->
   </div>
 </div>
 
@@ -478,6 +479,77 @@ const I18N = {
     too_many_chips: 'Фишек больше, чем цветов',
     lang_modal_title: 'Язык',
     donate_clicked: 'Спасибо за поддержку!',
+  },
+  th: {
+    title: 'สีประจำวัน',
+    menu_title: '🌈 สีประจำวัน',
+    menu_subtitle: 'ทายชุดสี 4 สีใน 10 ครั้ง',
+    play_daily: 'ชุดประจำวัน',
+    play_unlimited: 'โหมดไม่จำกัด',
+    unlimited_title: 'ไม่จำกัด',
+    resume: 'เล่นต่อ',
+    stats: 'สถิติ',
+    rules: 'วิธีเล่น',
+    donate: 'สนับสนุนเกม',
+    status_new: 'ใหม่',
+    status_won: '✓ เล่นแล้ว',
+    status_lost: '✗ เล่นแล้ว',
+    attempt_n: 'ครั้งที่ {n} จาก {m}',
+    attempt_win: 'ทายถูกใน {n} ครั้ง',
+    attempt_lose: 'ยังไม่ถูก ชุดใหม่พรุ่งนี้',
+    submit: 'ส่ง',
+    selected: 'เลือก {n}/{m}',
+    next_in: '⏱ ชุดถัดไปใน {t}',
+    win_1_t: '🌟 สุดยอด!',    win_1_s: 'ครั้งแรก!',
+    win_2_t: '🎯 แม่นมาก!',   win_2_s: 'สองครั้ง!',
+    win_3_t: '🔥 ร้อนแรง!',   win_3_s: 'สามครั้ง!',
+    win_4_t: '✨ ยอดเยี่ยม!',  win_4_s: 'สี่ครั้ง!',
+    win_5_t: '👍 เก่งมาก!',    win_5_s: 'ห้าครั้ง!',
+    win_6_t: '😊 ดีมาก!',      win_6_s: 'หกครั้ง!',
+    win_7_t: '🤔 เกือบไป!',    win_7_s: 'เจ็ดครั้ง!',
+    win_8_t: '😅 เฮ้อ!',       win_8_s: 'แปดครั้ง!',
+    win_9_t: '🫣 เฉียดฉิว!',   win_9_s: 'เก้าครั้ง!',
+    win_10_t: '😎 พลิกวิกฤต!', win_10_s: 'ครั้งสุดท้าย!',
+    win_default_t: '🎉 ทายถูก!', win_default_s: 'ใน {n} ครั้ง',
+    lose_title: '🤷‍♂️ ยังไม่ถูก', lose_sub: 'โชคดีพรุ่งนี้',
+    stats_only_daily: 'นับเฉพาะชุดประจำวัน',
+    stats_played: 'เล่นแล้ว', stats_won: 'ชนะ ({p}%)',
+    stats_streak: 'สตรีคปัจจุบัน', stats_best: 'สตรีคสูงสุด',
+    stats_rating: 'คะแนน',
+    stats_dist_title: 'การกระจายตามจำนวนครั้ง',
+    reset_stats: 'รีเซ็ตสถิติ',
+    reset_confirm: 'รีเซ็ตสถิติทั้งหมด?',
+    stats_reset_ok: 'รีเซ็ตแล้ว',
+    rules_title: 'วิธีเล่น',
+    rules_body_html: `
+      <p>ทายชุดสี 4 สีที่ซ่อนอยู่ภายใน 10 ครั้ง</p>
+      <p>แตะสีจากจานสีเพื่อเติมช่อง แตะช่องที่เติมแล้วเพื่อลบชิป</p>
+      <p>หลังการทายแต่ละครั้งจะแสดงธง 4 อัน:</p>
+      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>สีถูกและตำแหน่งถูก</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>สีถูกแต่ตำแหน่งผิด</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>ไม่มีสีนี้ในชุด</span></div>
+      <p style="margin-top:16px;color:#888;font-size:13px">ธงไม่ได้ผูกกับชิปแต่ละอัน — แสดงเฉพาะชุดผลลัพธ์</p>
+      <p style="color:#888;font-size:13px">ชุดใหม่ทุกวัน 00:00 UTC เหมือนกันทุกคน</p>
+    `,
+    share: 'แชร์ผลลัพธ์',
+    share_copy: 'คัดลอกเป็นข้อความ',
+    share_copied: 'คัดลอกแล้ว!',
+    share_downloaded: 'ดาวน์โหลดรูปแล้ว',
+    share_failed: 'แชร์ไม่สำเร็จ',
+    share_title: 'สีประจำวัน #{n}',
+    share_result_win: 'ทายถูกใน {n}',
+    share_result_lose: 'ยังไม่ถูก',
+    new_game: 'เกมใหม่',
+    new_game_confirm: 'เริ่มเกมใหม่? ความคืบหน้าจะหายไป',
+    go_home: 'หน้าหลัก',
+    setup_title: 'ตั้งค่าโหมดฝึกซ้อม',
+    setup_colors: 'สี', setup_chips: 'ชิป', setup_attempts: 'ครั้ง',
+    setup_repeats: 'อนุญาตให้สีซ้ำ',
+    start_game: 'เริ่มเกม',
+    too_many_chips: 'ชิปมากกว่าจำนวนสี',
+    lang_modal_title: 'ภาษา',
+    donate_clicked: 'ขอบคุณที่สนับสนุน!',
+    hold_to_save: 'กดค้างที่รูปเพื่อบันทึก'
   }
 };
 
@@ -596,6 +668,7 @@ function detectLang() {
   if (saved && I18N[saved]) return saved;
   const nav = (navigator.language || 'en').toLowerCase();
   if (nav.startsWith('ru')) return 'ru';
+  if (nav.startsWith('th')) return 'th'; // <-- ДОБАВИТЬ ВОТ ЭТУ СТРОКУ
   return 'en';
 }
 function setLang(lang) {
