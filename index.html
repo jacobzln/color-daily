@@ -246,6 +246,7 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
       <span id="daily-status" class="status-badge"></span>
     </button>
     <button class="menu-btn" id="play-unlimited"><span id="lbl-play-unlimited"></span></button>
+    <button class="menu-btn" id="play-challenge"><span id="lbl-play-challenge"></span></button>
     <button class="menu-btn" id="open-stats"><span id="lbl-stats"></span></button>
     <button class="menu-btn" id="open-rules"><span id="lbl-rules"></span></button>
     <button class="menu-btn" id="open-donate"><span id="lbl-donate"></span></button>
@@ -354,6 +355,13 @@ const I18N = {
     status_new: 'NEW',
     status_won: '✓ done',
     status_lost: '✗ done',
+    play_challenge: 'Challenge a friend',
+    challenge_title: 'Create a challenge',
+    challenge_submit: 'Send link',
+    challenge_hint: 'Guess the code to create a challenge:',
+    challenge_wait: 'Waiting for friend...',
+    challenge_win: 'You cracked the friend\'s code!',
+    link_copied: 'Link copied!',
     attempt_n: 'Attempt {n} of {m}',
     attempt_win: 'Solved in {n} tries',
     attempt_lose: 'Not solved. New puzzle tomorrow',
@@ -424,6 +432,13 @@ const I18N = {
     status_new: 'НОВОЕ',
     status_won: '✓ пройдено',
     status_lost: '✗ пройдено',
+    play_challenge: 'Загадать другу',
+    challenge_title: 'Создать вызов',
+    challenge_submit: 'Отправить ссылку',
+    challenge_hint: 'Загадайте код, чтобы отправить другу:',
+    challenge_wait: 'Ждем друга...',
+    challenge_win: 'Вы взломали код друга!',
+    link_copied: 'Ссылка скопирована!',
     attempt_n: 'Попытка {n} из {m}',
     attempt_win: 'Угадано за {n} попыток',
     attempt_lose: 'Не угадано. Новый набор — завтра',
@@ -494,6 +509,12 @@ const I18N = {
     status_new: 'ใหม่',
     status_won: '✓ เล่นแล้ว',
     status_lost: '✗ เล่นแล้ว',
+    play_challenge: 'ท้าทายเพื่อน',
+    challenge_title: 'สร้างการท้าทาย',
+    challenge_submit: 'ส่งลิงก์',
+    challenge_hint: 'สร้างรหัส 4 สีเพื่อส่งให้เพื่อน:',
+    challenge_win: 'คุณถอดรหัสของเพื่อนได้แล้ว!',
+    link_copied: 'คัดลอกลิงก์แล้ว!',
     attempt_n: 'ครั้งที่ {n} จาก {m}',
     attempt_win: 'ทายถูกใน {n} ครั้ง',
     attempt_lose: 'ยังไม่ถูก ชุดใหม่พรุ่งนี้',
@@ -694,6 +715,7 @@ function applyTranslations() {
   $('#lbl-setup-attempts').textContent = t('setup_attempts');
   $('#lbl-setup-repeats').textContent = t('setup_repeats');
   $('#start-unlimited').textContent = t('start_game');
+  $('#lbl-play-challenge').textContent = t('play_challenge');
   $('#rules-title').textContent = t('rules_title');
   $('#rules-body').innerHTML = t('rules_body_html');
   $('#stats-only-daily').textContent = t('stats_only_daily');
@@ -991,6 +1013,14 @@ function updateCountdown() { if (game && game.mode === 'daily') $('#countdown').
    ============================================================ */
 async function submitGuess() {
   if (!game || game.finished || game.animating || game.current.length !== game.numChips) return;
+
+  // 2. ДОБАВЛЯЕМ ПРОВЕРКУ ДЛЯ ЧЕЛЛЕНДЖА:
+  // Если мы в режиме создания вызова другу, генерируем ссылку и выходим из функции.
+  if (game.mode === 'challenge_create') {
+    createChallengeLink();
+    return;
+  }
+
   game.animating = true;
   const guess = [...game.current], flags = checkGuess(game.target, guess);
 
@@ -1188,6 +1218,91 @@ function showImageModal(blob, shareText) {
   });
 }
 
+
+/* ============================================================
+   CHALLENGE MODE (Загадать другу)
+   ============================================================ */
+function startChallengeCreator() {
+  // Создаем пустую игру для загадывания
+  game = { 
+    mode:'challenge_create', 
+    target: [], 
+    attempts: [], 
+    current: [], 
+    maxAttempts: 10, 
+    numColors: DAILY.COLORS, 
+    numChips: DAILY.CHIPS, 
+    allowRepeats: false, 
+    finished: false, won: false 
+  };
+  $('#title').textContent = t('challenge_title');
+  
+  // Меняем интерфейс под создание
+  $('#game-info').textContent = t('challenge_hint');
+  $('#attempts-area').innerHTML = ''; 
+  $('#input-area').classList.remove('hidden');
+  $('#game-over-controls').classList.add('hidden');
+  
+  // Вместо кнопки "Отправить" будет "Сгенерировать ссылку"
+  renderCurrent();
+  renderPalette();
+  $('#submit-btn').textContent = t('challenge_submit');
+  $('#submit-btn').disabled = true;
+  $('#submit-btn').dataset.action = 'create_challenge';
+  
+  // Очищаем текущий массив и перерисовываем
+  game.current = [];
+  renderCurrent();
+  showScreen('game');
+}
+
+// Обработка клика по кнопке "Отправить ссылку"
+async function createChallengeLink() {
+  if (game.current.length !== 4) return;
+  const code = game.current.join('-');
+  const link = window.location.origin + window.location.pathname + '?challenge=' + code;
+  const text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
+  
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Color Daily Challenge', text }); return; } catch(e){}
+  }
+  try { 
+    await navigator.clipboard.writeText(text); 
+    toast(t('link_copied'));
+  } catch(e) { prompt('Скопируйте ссылку:', text); }
+  
+  showScreen('menu');
+}
+
+// Проверка при загрузке страницы (есть ли вызов в ссылке)
+function checkChallengeUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const challengeData = params.get('challenge');
+  
+  if (challengeData) {
+    const target = challengeData.split('-').map(Number);
+    if (target.length === 4 && target.every(n => n >= 0 && n < COLORS.length)) {
+      // Запускаем игру с кодом друга
+      game = { 
+        mode:'challenge_play', 
+        target: target, 
+        attempts: [], current: [], 
+        maxAttempts: 10, numColors: DAILY.COLORS, numChips: DAILY.CHIPS, 
+        allowRepeats: false, finished: false, won: false 
+      };
+      
+      // Сбрасываем кнопку на обычную "Отправить"
+      $('#submit-btn').textContent = t('submit');
+      $('#submit-btn').dataset.action = 'submit_guess';
+      $('#title').textContent = t('play_challenge');
+      
+      renderGame();
+      showScreen('game');
+    }
+  }
+}
+
+
 /* ============================================================
    MENU & STATS
    ============================================================ */
@@ -1290,6 +1405,8 @@ function bindEvents() {
     if (btn) { setLang(btn.dataset.lang); $('#lang-modal').classList.add('hidden'); }
   });
 
+  $('#play-challenge').addEventListener('click', startChallengeCreator);
+
   // Клавиатура
   document.addEventListener('keydown', (e) => {
     if (currentScreen !== 'game' || !game || game.finished) return;
@@ -1322,6 +1439,8 @@ function boot() {
     try { tg.setHeaderColor('#1a1a2e'); tg.setBackgroundColor('#1a1a2e'); } catch(e) {}
     if (tg.BackButton) tg.BackButton.onClick(() => { if (currentScreen !== 'menu') showScreen('menu'); });
   }
+  // Проверяем, не перешел ли человек по ссылке-вызову
+  checkChallengeUrl(); 
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
