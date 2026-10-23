@@ -700,19 +700,17 @@ function loadUnlimitedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEYS.unlimited));
     if (saved && !saved.finished) {
-      // Восстанавливаем выбранные цвета, но ПРИНУДИТЕЛЬНО выключаем анимацию
-      saved.animating = false;
-      if (!saved.current) saved.current = []; // Страховка на всякий случай
+      saved.animating = false; // <-- Страховка от зависания
+      if (!saved.current) saved.current = []; // <-- Восстанавливаем цвета
       return saved;
     }
   } catch(e) {}
   return null;
 }
+
 function saveUnlimitedState() {
   if (game && game.mode === 'unlimited') {
-    // Сохраняем ВСЁ состояние игры, включая выбранные цвета (current),
-    // но принудительно снимаем флаг анимации, чтобы игра не зависла
-    const stateToSave = Object.assign({}, game, { animating: false });
+    const stateToSave = Object.assign({}, game, { animating: false }); // <-- Убираем флаг анимации
     localStorage.setItem(KEYS.unlimited, JSON.stringify(stateToSave));
   }
 }
@@ -730,7 +728,7 @@ function saveDailyState() {
     date: getUtcDayInfo().dateStr, 
     target: game.target, 
     attempts: game.attempts, 
-    current: game.current, // <--- ДОБАВИЛИ ВЫБРАННЫЕ ЦВЕТА
+    current: game.current, // <-- Сохраняем выбранные цвета
     finished: game.finished, 
     won: game.won 
   }));
@@ -739,8 +737,23 @@ function startDaily() {
   const info = getUtcDayInfo();
   const saved = loadDailyState();
   if (saved && saved.date === info.dateStr) {
-    game = { mode:'daily', target:saved.target, attempts:saved.attempts||[], current:saved.current||[], maxAttempts:DAILY.ATTEMPTS, numColors:DAILY.COLORS, numChips:DAILY.CHIPS, allowRepeats:false, finished:!!saved.finished, won:!!saved.won, date:info.dateStr, dayNum:info.dayNum };
+    // Если игра уже была начата сегодня, восстанавливаем её
+    game = { 
+      mode:'daily', 
+      target:saved.target, 
+      attempts:saved.attempts||[], 
+      current:saved.current||[], // <-- Восстанавливаем цвета
+      maxAttempts:DAILY.ATTEMPTS, 
+      numColors:DAILY.COLORS, 
+      numChips:DAILY.CHIPS, 
+      allowRepeats:false, 
+      finished:!!saved.finished, 
+      won:!!saved.won, 
+      date:info.dateStr, 
+      dayNum:info.dayNum 
+    };
   } else {
+    // Новая игра
     game = { mode:'daily', target:generateTarget(hashString('color-daily-'+info.dateStr), DAILY.COLORS, DAILY.CHIPS, false), attempts:[], current:[], maxAttempts:DAILY.ATTEMPTS, numColors:DAILY.COLORS, numChips:DAILY.CHIPS, allowRepeats:false, finished:false, won:false, date:info.dateStr, dayNum:info.dayNum };
     saveDailyState();
     trackEvent('game_start', { mode: 'daily' });
@@ -869,13 +882,24 @@ function renderPalette() {
 }
 function addCurrentChip(colorIdx) {
   if (!game || game.finished || game.animating || game.current.length >= game.numChips) return;
-  game.current.push(colorIdx); renderCurrent(game.current.length - 1); renderPalette(); updateSubmit();
-  if (game.mode === 'daily') saveDailyState(); // <--- ДОБАВИТЬ
+  game.current.push(colorIdx); 
+  renderCurrent(game.current.length - 1); 
+  renderPalette(); 
+  updateSubmit();
+  // Мгновенное сохранение при клике
+  if (game.mode === 'daily') saveDailyState();
+  if (game.mode === 'unlimited') saveUnlimitedState();
 }
+
 function removeCurrentChip(idx) {
   if (!game || game.finished || game.animating) return;
-  game.current.splice(idx, 1); renderCurrent(); renderPalette(); updateSubmit();
-  if (game.mode === 'daily') saveDailyState(); // <--- ДОБАВИТЬ
+  game.current.splice(idx, 1); 
+  renderCurrent(); 
+  renderPalette(); 
+  updateSubmit();
+  // Мгновенное сохранение при удалении
+  if (game.mode === 'daily') saveDailyState();
+  if (game.mode === 'unlimited') saveUnlimitedState();
 }
 function updateSubmit() {
   const btn = $('#submit-btn'), n = game.current.length;
