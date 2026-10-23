@@ -600,6 +600,51 @@ let stats = null;
 let tg = null;
 let countdownInterval = null;
 
+/* ============================================================
+   PLATFORM (TG / MAX / WEB)
+   ============================================================ */
+const Platform = {
+  type: 'web',
+  maxApp: null,
+  init() {
+    if (window.Telegram?.WebApp?.initData !== undefined) {
+      this.type = 'tg'; tg = window.Telegram.WebApp; tg.ready(); tg.expand();
+      try { tg.setHeaderColor('#1a1a2e'); tg.setBackgroundColor('#1a1a2e'); } catch(e){}
+      return;
+    }
+    if (window.MAX?.WebApp || window.max || window.WebApp || window.vkBridge) {
+      this.type = 'max';
+      this.maxApp = window.MAX?.WebApp || window.max || window.WebApp;
+      if (this.maxApp) { if (this.maxApp.ready) this.maxApp.ready(); if (this.maxApp.expand) this.maxApp.expand(); }
+      return;
+    }
+    this.type = 'web';
+  },
+  openLink(url) {
+    if (this.type === 'tg' && tg.openLink) { try { tg.openLink(url); return; } catch(e){} }
+    if (this.type === 'max') {
+      if (this.maxApp && this.maxApp.openLink) { try { this.maxApp.openLink(url); return; } catch(e){} }
+      if (window.vkBridge && window.vkBridge.send) { window.vkBridge.send('VKWebAppOpenLink', { url: url }).catch(()=>{}); return; }
+    }
+    window.open(url, '_blank', 'noopener');
+  },
+  setupBackButton(callback) {
+    if (this.type === 'tg' && tg.BackButton) {
+      tg.BackButton.onClick(callback);
+      this._updateBackButton = (show) => show ? tg.BackButton.show() : tg.BackButton.hide();
+    } else if (this.type === 'max') {
+      if (this.maxApp && this.maxApp.on) {
+         this.maxApp.on('backButtonClicked', callback);
+         this._updateBackButton = (show) => {
+           if (show && this.maxApp.showBackButton) this.maxApp.showBackButton();
+           if (!show && this.maxApp.hideBackButton) this.maxApp.hideBackButton();
+         };
+      } else { this._updateBackButton = () => {}; }
+    } else { this._updateBackButton = () => {}; }
+  },
+  showBackButton(show) { if (this._updateBackButton) this._updateBackButton(show); }
+};
+
 const $ = s => document.querySelector(s);
 
 function t(key, vars) {
@@ -880,7 +925,12 @@ function getScreenTitle() {
   switch (currentScreen) {
     case 'menu': return t('title');
     case 'setup': return t('setup_title');
-    case 'game': return !game ? t('title') : (game.mode === 'daily' ? `${t('play_daily')} #${game.dayNum}` : t('unlimited_title'));
+    case 'game': 
+      if (!game) return t('title');
+      if (game.mode === 'daily') return `${t('play_daily')} #${game.dayNum}`;
+      if (game.mode === 'challenge_create') return t('challenge_title');
+      if (game.mode === 'challenge_play') return t('play_challenge');
+      return t('unlimited_title');
     case 'stats': return t('stats');
     case 'rules': return t('rules_title');
     default: return t('title');
@@ -1223,7 +1273,6 @@ function showImageModal(blob, shareText) {
    CHALLENGE MODE (Загадать другу)
    ============================================================ */
 function startChallengeCreator() {
-  // Создаем пустую игру для загадывания
   game = { 
     mode:'challenge_create', 
     target: [], 
@@ -1233,36 +1282,57 @@ function startChallengeCreator() {
     numColors: DAILY.COLORS, 
     numChips: DAILY.CHIPS, 
     allowRepeats: false, 
-    finished: false, won: false 
+    finished: false, 
+    won: false 
   };
-  $('#title').textContent = t('challenge_title');
-  
-  // Меняем интерфейс под создание
-  $('#game-info').textContent = t('challenge_hint');
-  $('#attempts-area').innerHTML = ''; 
-  $('#input-area').classList.remove('hidden');
-  $('#game-over-controls').classList.add('hidden');
-  
-  // Вместо кнопки "Отправить" будет "Сгенерировать ссылку"
-  renderCurrent();
-  renderPalette();
-  $('#submit-btn').textContent = t('challenge_submit');
-  $('#submit-btn').disabled = true;
-  $('#submit-btn').dataset.action = 'create_challenge';
-  
-  // Очищаем текущий массив и перерисовываем
-  game.current = [];
-  renderCurrent();
-  showScreen('game');
+  renderGame();       // <-- Автоматически расставит все кнопки
+  showScreen('game'); // <-- Автоматически поставит правильный заголовок "Создать вызов"
 }
 
-// Обработка клика по кнопке "Отправить ссылку"
+/* ============================================================
+   CHALLENGE MODE (Загадать другу)
+   ============================================================ */
+
+// Функции для скрытия ответа в ссылке
+function encodeChallenge(arr) {
+  try {
+    const str = arr.join('-');
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  } catch(e) { return arr.join('-'); }
+}
+
+function decodeChallenge(str) {
+  try {
+    let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const decoded = atob(b64);
+    return decoded.split('-').map(Number);
+  } catch(e) { return null; }
+}
+
+// Создание ссылки (кнопка "Отправить ссылку")
 async function createChallengeLink() {
   if (game.current.length !== 4) return;
-  const code = game.current.join('-');
-  const link = window.location.origin + window.location.pathname + '?challenge=' + code;
-  const text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
   
+  // Кодируем массив цветов, чтобы ссылка не выдавала ответ
+  const code = encodeChallenge(game.current); 
+  let link = '', text = '';
+
+  // Генерируем ссылку в зависимости от платформы
+  if (Platform.type === 'tg') {
+    // Ссылка для Telegram Mini App
+    link = `https://t.me/${CONFIG.tgBotName}/app?startapp=challenge_${code}`;
+    text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
+  } else if (Platform.type === 'max') {
+    // Ссылка для MAX Mini App
+    link = `https://max.ru/${CONFIG.maxBotName}?startapp=challenge_${code}`;
+    text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
+  } else {
+    // Ссылка для обычного браузера
+    link = window.location.origin + window.location.pathname + '?challenge=' + code;
+    text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
+  }
+
   if (navigator.share) {
     try { await navigator.share({ title: 'Color Daily Challenge', text }); return; } catch(e){}
   }
@@ -1274,15 +1344,33 @@ async function createChallengeLink() {
   showScreen('menu');
 }
 
-// Проверка при загрузке страницы (есть ли вызов в ссылке)
+// Чтение ссылки (при запуске игры)
 function checkChallengeUrl() {
+  let challengeData = null;
   const params = new URLSearchParams(window.location.search);
-  const challengeData = params.get('challenge');
   
+  // 1. Ищем в браузере
+  if (params.has('challenge')) challengeData = params.get('challenge');
+
+  // 2. Ищем в Telegram / MAX (в start_param)
+  if (!challengeData) {
+    let startParam = null;
+    if (Platform.type === 'tg') {
+      startParam = tg.initDataUnsafe?.start_param;
+    } else if (Platform.type === 'max') {
+      startParam = Platform.maxApp?.initDataUnsafe?.start_param || Platform.maxApp?.startParam;
+    }
+    if (startParam && startParam.startsWith('challenge_')) {
+      challengeData = startParam.replace('challenge_', '');
+    }
+  }
+
+  // 3. Если нашли данные, декодируем и запускаем
   if (challengeData) {
-    const target = challengeData.split('-').map(Number);
-    if (target.length === 4 && target.every(n => n >= 0 && n < COLORS.length)) {
-      // Запускаем игру с кодом друга
+    const target = decodeChallenge(challengeData);
+    
+    // Проверяем, что это массив из 4 валидных цветов
+    if (target && target.length === 4 && target.every(n => n >= 0 && n < COLORS.length)) {
       game = { 
         mode:'challenge_play', 
         target: target, 
@@ -1290,13 +1378,8 @@ function checkChallengeUrl() {
         maxAttempts: 10, numColors: DAILY.COLORS, numChips: DAILY.CHIPS, 
         allowRepeats: false, finished: false, won: false 
       };
-      
-      // Сбрасываем кнопку на обычную "Отправить"
       $('#submit-btn').textContent = t('submit');
-      $('#submit-btn').dataset.action = 'submit_guess';
-      $('#title').textContent = t('play_challenge');
-      
-      renderGame();
+      renderGame(); 
       showScreen('game');
     }
   }
