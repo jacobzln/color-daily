@@ -57,6 +57,19 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
   display: flex;
   gap: 4px;
   margin-left: auto;
+  background: rgba(0, 0, 0, 0.25); /* Темная плашка для визуального отделения */
+  padding: 4px;
+  border-radius: 8px;
+  align-items: center;
+  min-width: 36px; /* Чтобы плашка не прыгала по размеру */
+  justify-content: center;
+}
+
+/* Сетка 2x2 для стандартного режима (4 фишки) */
+.flags-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 14px);
+  gap: 4px;
 }
 
 /* Уменьшаем флажки в истории */
@@ -1135,10 +1148,21 @@ function createAttemptRow(attempt, idx, isNew) {
   top.appendChild(num); top.appendChild(chips);
   
   if (attempt) {
-    const flags = document.createElement('div'); flags.className = 'attempt-flags';
+    const flags = document.createElement('div'); 
+    flags.className = 'attempt-flags';
+    
+    // Если в игре 4 фишки — делаем сетку 2x2, чтобы не путать с позициями
+    if (game.numChips === 4) {
+      flags.classList.add('flags-grid');
+    }
+
     attempt.flags.forEach((f, i) => {
-      const flag = document.createElement('div'); flag.className = 'flag ' + f;
-      if (isNew) { flag.classList.add('reveal'); flag.style.animationDelay = (game.numChips * 70 + 80 + i * 70) + 'ms'; }
+      const flag = document.createElement('div'); 
+      flag.className = 'flag ' + f;
+      if (isNew) { 
+        flag.classList.add('reveal'); 
+        flag.style.animationDelay = (game.numChips * 70 + 80 + i * 70) + 'ms'; 
+      }
       flags.appendChild(flag);
     });
     top.appendChild(flags);
