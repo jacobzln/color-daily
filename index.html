@@ -55,14 +55,15 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
 /* Контейнер для флажков */
 .attempt-flags {
   display: flex;
+  flex-wrap: wrap;          /* Позволяет переносить флажки на 2-й ряд */
+  justify-content: center;  /* Центрирует флажки, если их меньше в нижнем ряду */
+  align-content: center;
   gap: 4px;
   margin-left: auto;
-  background: rgba(0, 0, 0, 0.25); /* Темная плашка для визуального отделения */
-  padding: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 5px 6px;
   border-radius: 8px;
-  align-items: center;
-  min-width: 36px; /* Чтобы плашка не прыгала по размеру */
-  justify-content: center;
+  /* Ширина теперь будет задаваться динамически в JS */
 }
 
 /* Сетка 2x2 для стандартного режима (4 фишки) */
@@ -347,7 +348,7 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
     </div>
     <div class="setup-field">
       <label class="setup-label"><span id="lbl-setup-chips"></span>: <span id="chips-val">4</span></label>
-      <input type="range" id="chips-range" min="2" max="8" value="4" class="setup-input">
+      <input type="range" id="chips-range" min="2" max="6" value="4" class="setup-input">
     </div>
     <div class="setup-field">
       <label class="setup-label"><span id="lbl-setup-attempts"></span>: <span id="attempts-val">10</span></label>
@@ -947,8 +948,16 @@ function loadUnlimitedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEYS.unlimited));
     if (saved && !saved.finished) {
-      saved.animating = false; // <-- Страховка от зависания
-      if (!saved.current) saved.current = []; // <-- Восстанавливаем цвета
+      saved.animating = false;
+      
+      // Если количество фишек изменилось (например, было 4, стало 6), 
+      // мы принудительно очищаем массив current под новый размер
+      if (!Array.isArray(saved.current) || saved.current.length !== saved.numChips) {
+        saved.current = Array(saved.numChips).fill(null);
+        saved.selectedSlot = 0;
+      } else {
+        saved.current = saved.current.map(c => (c !== null && c !== undefined && COLORS[c]) ? c : null);
+      }
       return saved;
     }
   } catch(e) {}
@@ -1012,17 +1021,32 @@ function startDaily() {
   showScreen('game');
 }
 function startUnlimited() {
-  const numColors = +$('#colors-range').value, numChips = +$('#chips-range').value, maxAttempts = +$('#attempts-range').value, allowRepeats = $('#repeats-check').checked;
+  const numColors = +$('#colors-range').value;
+  const numChips = +$('#chips-range').value;
+  const maxAttempts = +$('#attempts-range').value;
+  const allowRepeats = $('#repeats-check').checked;
+  
   if (!allowRepeats && numChips > numColors) { toast(t('too_many_chips')); return; }
+  
   const seed = Math.floor(Math.random() * 2 ** 31);
-  game = { mode:'unlimited', target:generateTarget(seed, numColors, numChips, allowRepeats), attempts:[], current: Array(DAILY.CHIPS).fill(null),
- maxAttempts, numColors, numChips, allowRepeats, finished:false, won:false, date:null, dayNum:null };
-  saveUnlimitedState();
-  trackEvent('game_start', { mode: 'unlimited', colors: numColors, chips: numChips });
-  // Ставим курсор на первый пустой слот при загрузке
-  const firstEmpty = game.current ? game.current.indexOf(null) : 0;
-  game.selectedSlot = firstEmpty !== -1 ? firstEmpty : null;
-  renderGame();
+  game = { 
+    mode:'unlimited', 
+    target:generateTarget(seed, numColors, numChips, allowRepeats), 
+    attempts:[], 
+    current: Array(numChips).fill(null), // <--- Жестко создаем массив из null
+    selectedSlot: 0, 
+    maxAttempts, 
+    numColors, 
+    numChips, 
+    allowRepeats, 
+    finished:false, 
+    won:false, 
+    date:null, 
+    dayNum:null 
+  };
+  saveUnlimitedState(); 
+  trackEvent('game_start', { mode: 'unlimited' });
+  renderGame(); 
   showScreen('game');
 }
 function validateSetup() {
@@ -1137,7 +1161,9 @@ function createAttemptRow(attempt, idx, isNew) {
   
   for (let i = 0; i < game.numChips; i++) {
     const slot = document.createElement('div'); slot.className = 'slot';
-    if (attempt) {
+    
+    // ЗАЩИТА: проверяем, что попытка существует, цвет есть в палитре и он не пустой
+    if (attempt && attempt.guess && attempt.guess[i] !== null && attempt.guess[i] !== undefined && COLORS[attempt.guess[i]]) {
       slot.classList.add('filled'); 
       slot.style.setProperty('--chip-color', COLORS[attempt.guess[i]].hex);
       if (isNew) { slot.classList.add('reveal'); slot.style.animationDelay = (i * 70) + 'ms'; }
@@ -1147,14 +1173,18 @@ function createAttemptRow(attempt, idx, isNew) {
   
   top.appendChild(num); top.appendChild(chips);
   
-  if (attempt) {
+  if (attempt && attempt.flags) {
     const flags = document.createElement('div'); 
     flags.className = 'attempt-flags';
     
-    // Если в игре 4 фишки — делаем сетку 2x2, чтобы не путать с позициями
-    if (game.numChips === 4) {
-      flags.classList.add('flags-grid');
-    }
+    // Вычисляем, сколько флажков будет в одном ряду
+    const numFlags = attempt.flags.length;
+    const cols = Math.ceil(numFlags / 2); // Делим на 2 и округляем вверх
+
+    // Задаем точную ширину плашки, чтобы влезло ровно `cols` штук
+    // 14px (ширина флажка) * cols + 4px (отступ) * (cols - 1) + 12px (внутренние отступы)
+    const width = (cols * 14) + ((cols - 1) * 4) + 12;
+    flags.style.width = width + 'px';
 
     attempt.flags.forEach((f, i) => {
       const flag = document.createElement('div'); 
@@ -1181,23 +1211,22 @@ function renderCurrent() {
     const slot = document.createElement('div'); 
     slot.className = 'slot';
     
-    if (game.current[i] !== null) {
+    // Проверяем, что цвет существует, чтобы не было ошибки "reading 'hex'"
+    if (game.current[i] !== null && game.current[i] !== undefined && COLORS[game.current[i]]) {
       slot.classList.add('filled'); 
       slot.style.setProperty('--chip-color', COLORS[game.current[i]].hex);
     }
     if (i === game.selectedSlot) slot.classList.add('selected');
     
-    // Клик по слоту: просто выбираем его
     slot.addEventListener('click', () => {
       game.selectedSlot = i;
-      renderCurrent(); // Перерисовываем только нижнюю панель
+      renderCurrent(); 
     });
     
     inner.appendChild(slot);
   }
   
-  // Показываем крестик удаления, если есть хоть один цвет
-  const hasFilled = game.current.some(c => c !== null);
+  const hasFilled = game.current.some(c => c !== null && c !== undefined);
   const shouldShowDelete = hasFilled || (game.selectedSlot !== null && game.selectedSlot > 0);
   $('#delete-btn').classList.toggle('hidden', !shouldShowDelete);
 }
@@ -1259,26 +1288,16 @@ function renderPalette() {
 
 function addCurrentChip(colorIdx) {
   if (!game || game.finished || game.animating) return;
-  
-  // Если все шарики уже заполнены (курсора нет), ничего не делаем
   if (game.selectedSlot === undefined || game.selectedSlot === null) return;
 
-  // 1. Ставим (или заменяем) цвет в выбранный слот
   game.current[game.selectedSlot] = colorIdx;
 
-  // 2. Ищем пустое место СПРАВА от текущего курсора
   let nextEmpty = game.current.indexOf(null, game.selectedSlot + 1);
+  if (nextEmpty === -1) nextEmpty = game.current.indexOf(null);
   
-  // 3. Если справа пусто, ищем с самого начала (слева)
-  if (nextEmpty === -1) {
-    nextEmpty = game.current.indexOf(null);
-  }
-
-  // 4. Ставим курсор на найденное пустое место
   if (nextEmpty !== -1) {
     game.selectedSlot = nextEmpty;
   } else {
-    // 5. Если пустых мест больше нет — убираем курсор
     game.selectedSlot = null;
   }
 
