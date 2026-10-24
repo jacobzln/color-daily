@@ -468,14 +468,19 @@ const I18N = {
     stats_reset_ok: 'Statistics reset',
     rules_title: 'How to play',
     rules_body_html: `
-      <p>Guess the hidden 4-color code in 10 tries.</p>
-      <p>Tap colors from the palette to fill the slots. Tap a filled slot to remove that chip.</p>
-      <p>After each guess you'll see 4 flags:</p>
-      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>Right color, right position</span></div>
-      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>Right color, wrong position</span></div>
-      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>Color is not in the code</span></div>
-      <p style="margin-top:16px;color:#888;font-size:13px">Flags are not tied to specific chips — they show only the set of results.</p>
-      <p style="color:#888;font-size:13px">New puzzle every day at 00:00 UTC. Same puzzle for all players.</p>
+      <p>Your goal is to guess a secret code of 4 colors in 10 tries.</p>
+      
+      <p><strong>How to play:</strong></p>
+      <p>Click on the colored circles on the panel below to fill the empty spaces. If you click on a filled space, the color will be removed so you can choose another one.</p>
+      
+      <p><strong>What the hints mean:</strong></p>
+      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>The color is correct and in the right place.</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>The color is in the code, but in a different place.</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>This color is not in the code at all.</span></div>
+      
+      <p style="margin-top:16px;color:#888;font-size:14px">Note: the hints do not point to a specific circle. They only show the total number of correct colors.</p>
+      
+      <p style="color:#888;font-size:14px">A new puzzle appears every day at 00:00 UTC. It is the same for all players.</p>
     `,
     share: 'Share result',
     share_copy: 'Copy as text',
@@ -545,14 +550,19 @@ const I18N = {
     stats_reset_ok: 'Статистика сброшена',
     rules_title: 'Правила игры',
     rules_body_html: `
-      <p>Угадайте скрытый набор из 4 цветов за 10 попыток.</p>
-      <p>Тапайте по палитре, чтобы заполнить слоты. Тап по заполненному слоту — убрать фишку.</p>
-      <p>После каждой попытки показываются 4 флажка:</p>
-      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>Цвет есть и на своём месте</span></div>
-      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>Цвет есть, но не на своём месте</span></div>
-      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>Цвета нет в наборе</span></div>
-      <p style="margin-top:16px;color:#888;font-size:13px">Флажки не привязаны к конкретным фишкам — они показывают только набор результатов.</p>
-      <p style="color:#888;font-size:13px">Новый набор каждый день в 00:00 UTC. Один и тот же для всех игроков.</p>
+      <p>Ваша задача — угадать скрытый набор из 4 цветов за 10 попыток.</p>
+      
+      <p><strong>Как играть:</strong></p>
+      <p>Нажимайте на цветные кружочки на панели внизу, чтобы заполнить пустые ячейки. Если вы нажмете на уже заполненную ячейку, цвет из нее исчезнет, и вы сможете выбрать другой.</p>
+      
+      <p><strong>Что означают подсказки после хода:</strong></p>
+      <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>Цвет угадан и стоит на своем месте.</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>Такой цвет есть в наборе, но он стоит на другом месте.</span></div>
+      <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>Этого цвета в загаданном наборе нет.</span></div>
+      
+      <p style="margin-top:16px;color:#888;font-size:14px">Обратите внимание: подсказки не указывают на конкретный кружочек. Они показывают только общее количество угаданных цветов, чтобы вам было интереснее думать.</p>
+      
+      <p style="color:#888;font-size:14px">Новый набор появляется каждый день в 00:00 по мировому времени. Он одинаковый для всех игроков.</p>
     `,
     share: 'Поделиться результатом',
     share_copy: 'Скопировать текстом',
