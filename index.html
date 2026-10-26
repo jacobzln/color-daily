@@ -10,221 +10,159 @@
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+/* ============================================================
+   ПЕРЕМЕННЫЕ ТЕМ
+   ============================================================ */
+:root {
+  /* Темная тема */
+  --bg-main: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);
+  --text-main: #eee;
+  --text-muted: #888;
+  --panel-bg: rgba(255,255,255,.05);
+  --panel-border: rgba(255,255,255,.12);
+  --slot-bg: rgba(255,255,255,.03);
+  --slot-border: rgba(255,255,255,.18);
+  --card-bg: linear-gradient(135deg,#1f1f3a,#16213e);
+  --flag-bg: rgba(0,0,0,.25);
+  --modal-bg: linear-gradient(135deg,#1f1f3a,#16213e);
+  --btn-bg: rgba(255,255,255,.08);
+  --btn-border: rgba(255,255,255,.12);
+}
+
+body[data-theme="light"] {
+  /* Светлая тема */
+  --bg-main: linear-gradient(135deg,#f0f2f5 0%,#e2e6ee 100%);
+  --text-main: #1a1a2e;
+  --text-muted: #6c757d;
+  --panel-bg: #ffffff;
+  --panel-border: #d1d5db;
+  --slot-bg: #e9ecef;
+  --slot-border: #ced4da;
+  --card-bg: #ffffff;
+  --flag-bg: rgba(0,0,0,.06);
+  --modal-bg: #ffffff;
+  --btn-bg: #ffffff;
+  --btn-border: #d1d5db;
+}
+
+/* ============================================================
+   БАЗОВЫЕ СТИЛИ
+   ============================================================ */
 html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);color:#eee;overscroll-behavior:none;
+  background:var(--bg-main);color:var(--text-main);overscroll-behavior:none;
   user-select:none;-webkit-user-select:none;min-height:100vh;min-height:100dvh}
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:500px;margin:0 auto;width:100%;
   padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-
-/* ГЛОБАЛЬНЫЙ КЛАСС СКРЫТИЯ (исправляет наложение экранов) */
 .hidden { display: none !important; }
 
 /* Header */
-#header{display:flex;align-items:center;padding:12px 8px;border-bottom:1px solid rgba(255,255,255,.08);gap:4px;flex-shrink:0}
-#title{flex:1;text-align:center;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.icon-btn{background:none;border:none;color:#eee;font-size:20px;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .2s;font-family:inherit}
-.icon-btn:active{background:rgba(255,255,255,.1)}
+#header{display:flex;align-items:center;padding:12px 8px;border-bottom:1px solid var(--panel-border);gap:4px;flex-shrink:0}
+#title{flex:1;text-align:center;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-main);}
+.icon-btn{background:none;border:none;color:var(--text-main);font-size:20px;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .2s;font-family:inherit}
+.icon-btn:active{background:var(--panel-bg)}
 
 /* Screens */
 .screen{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
-#game-screen { min-height: 0; } /* убрали display: flex, чтобы не конфликтовало с .hidden */
+#game-screen { min-height: 0; }
 
 /* Menu */
 #menu-screen{justify-content:center;align-items:center;padding:24px;gap:10px;overflow-y:auto}
 #menu-screen h1{font-size:26px;margin:0 0 4px;text-align:center}
-.subtitle{color:#aaa;text-align:center;margin:0 0 16px;font-size:14px;max-width:340px}
-.menu-btn{width:100%;max-width:340px;padding:15px 20px;background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.12);color:#eee;border-radius:14px;font-size:15px;font-weight:600;
+.subtitle{color:var(--text-muted);text-align:center;margin:0 0 16px;font-size:14px;max-width:340px}
+.menu-btn{width:100%;max-width:340px;padding:15px 20px;
+  background:var(--btn-bg);border:1px solid var(--btn-border);color:var(--text-main);
+  border-radius:14px;font-size:15px;font-weight:600;
   cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;transition:all .2s;font-family:inherit}
-.menu-btn:active{background:rgba(255,255,255,.15);transform:scale(.99)}
+.menu-btn:active{background:var(--panel-bg);transform:scale(.99)}
 .menu-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .menu-btn.center{justify-content:center}
-.status-badge{font-size:12px;color:#aaa;font-weight:500;white-space:nowrap}
+.status-badge{font-size:12px;color:var(--text-muted);font-weight:500;white-space:nowrap}
 .status-badge.won{color:#2ecc71}
 .status-badge.lost{color:#e74c3c}
 
 /* Game */
 #game-screen{display:flex;flex-direction:column;min-height:0}
-#game-info{padding:10px 16px 2px;font-size:14px;color:#ccc;text-align:center;flex-shrink:0}
-#countdown{padding:0 16px 8px;font-size:12px;color:#888;text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+#game-info{padding:10px 16px 2px;font-size:14px;color:var(--text-main);text-align:center;flex-shrink:0}
+#countdown{padding:0 16px 8px;font-size:12px;color:var(--text-muted);text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* Сетка попыток */
 #attempts-area{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:8px;min-height:0;-webkit-overflow-scrolling:touch}
 #attempts-area::-webkit-scrollbar{width:4px}
-#attempts-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+#attempts-area::-webkit-scrollbar-thumb{background:var(--text-muted);border-radius:2px;opacity:0.5}
 
+.attempt-row{display:flex;flex-direction:column;gap:8px;padding:8px 12px;
+  background:var(--panel-bg);border-radius:12px;animation:slideIn .3s ease-out;
+  border:1px solid transparent;transition:all .2s;}
+.attempt-row.active{background:var(--slot-bg);border-color:var(--panel-border);}
+.attempt-row.future{opacity:0.3;}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.row-top{display:flex;align-items:center;gap:10px;}
+.attempt-num{font-size:13px;color:var(--text-muted);width:16px;text-align:right;font-weight:600;flex-shrink:0;}
+.attempt-chips{display:flex;gap:6px;flex:1;}
+
+/* Слоты (кружки) */
+.slot{width:38px;height:38px;border-radius:50%;background:var(--slot-bg);
+  border:2px dashed var(--slot-border);cursor:pointer;transition:all .15s;
+  display:flex;justify-content:center;align-items:center;position:relative;}
+.slot.filled{border:none;background:var(--chip-color);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18);}
+.slot.filled.pop{animation:pop .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* Выделение активного слота */
+.slot.selected::after {
+  content:''; position:absolute; top:-4px; left:-4px; right:-4px; bottom:-4px;
+  border-radius:50%; border:2px solid #2ecc71; box-shadow:0 0 10px rgba(46,204,113,.6);
+  pointer-events:none;
+}
 
 /* Контейнер для флажков */
 .attempt-flags {
-  display: flex;
-  flex-wrap: wrap;          /* Позволяет переносить флажки на 2-й ряд */
-  justify-content: center;  /* Центрирует флажки, если их меньше в нижнем ряду */
-  align-content: center;
-  gap: 4px;
-  margin-left: auto;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 5px 6px;
-  border-radius: 8px;
-  /* Ширина теперь будет задаваться динамически в JS */
+  display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
+  gap: 4px; margin-left: auto; background: var(--flag-bg); 
+  padding: 5px 6px; border-radius: 8px;
 }
-
-/* Сетка 2x2 для стандартного режима (4 фишки) */
-.flags-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 14px);
-  gap: 4px;
-}
-
-/* Уменьшаем флажки в истории */
-.attempt-flags .flag {
-  width: 12px;
-  height: 12px;
-}
-@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-
-.chip{width:40px;height:40px;border-radius:50%;background:var(--chip-color,#333);flex-shrink:0;
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.3)}
-.chip.reveal{opacity:0;animation:chipReveal .35s cubic-bezier(.34,1.56,.64,1) forwards}
-@keyframes chipReveal{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
-
 .flag{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.attempt-flags .flag { width:12px; height:12px; }
 .flag.green{background:#2ecc71;box-shadow:0 0 6px rgba(46,204,113,.6)}
 .flag.yellow{background:#f1c40f;box-shadow:0 0 6px rgba(241,196,15,.6)}
 .flag.gray{background:#555}
 .flag.reveal{opacity:0;animation:flagIn .3s ease-out forwards}
 @keyframes flagIn{from{opacity:0;transform:scale(0) rotate(-30deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 
-/* Input */
+/* Нижняя панель ввода */
 #input-area { flex-shrink: 0; margin: 0 16px 16px 16px; display: flex; flex-direction: column; }
-
-/* Панель со слотами (как было раньше) */
 #current-chips {
   display: flex; align-items: center; padding: 8px 16px; 
-  background: rgba(255,255,255,.05); border-radius: 16px 16px 0 0; 
+  background: var(--panel-bg); border-radius: 16px 16px 0 0; 
   min-height: 58px; position: relative;
+  border: 2px dashed var(--panel-border); border-bottom: none;
 }
 #slots-inner { display: flex; gap: 10px; justify-content: center; align-items: center; width: 100%; padding: 0 40px; }
 
-/* Слоты */
-.slot { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.03);
-  border: 2px dashed rgba(255,255,255,.18); cursor: pointer; transition: all .15s; position: relative; }
-.slot.filled { border: none; background: var(--chip-color);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,.28), inset 0 3px 0 rgba(255,255,255,.18); }
-
-/* Красивое выделение (зеленое кольцо снаружи) */
-.slot.selected::after {
-  content: '';
-  position: absolute;
-  top: -4px; left: -4px; right: -4px; bottom: -4px;
-  border-radius: 50%;
-  border: 2px solid #2ecc71;
-  box-shadow: 0 0 10px rgba(46,204,113,.6);
-  pointer-events: none;
-}
-
-/* Выделенный слот (тот, в который будем ставить цвет) 
-.slot.selected { border: 2px solid #2ecc71; box-shadow: 0 0 10px rgba(46,204,113,.5); }
-*/
-
-/* Кнопка удаления */
 #delete-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.15); color: #ff6b6b; display: flex; justify-content: center; align-items: center;
+  width: 36px; height: 36px; border-radius: 50%; background: var(--slot-bg);
+  border: 1px solid var(--slot-border); color: #ff6b6b; display: flex; justify-content: center; align-items: center;
   cursor: pointer; transition: all 0.2s; }
 #delete-btn:active { background: rgba(255,107,107,.2); transform: translateY(-50%) scale(0.85); }
+#delete-btn.hidden{ display:none !important; }
+@keyframes floatBtn {0% { transform: translateY(-50%) scale(0); opacity: 0; }100% { transform: translateY(-50%) scale(1); opacity: 1; }}
+#delete-btn:not(.hidden) {animation: floatBtn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;}
 
-/* Палитра */
-#palette { padding: 8px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; background: rgba(255,255,255,.02); }
-#submit-btn { margin: 0; width: 100%; border-radius: 0 0 12px 12px; padding: 16px; background: linear-gradient(135deg,#2ecc71,#27ae60); border: none; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s; }
-#submit-btn:disabled { background: rgba(255,255,255,.08); color: #666; cursor: not-allowed; }
-
-#attempts-area{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:8px;min-height:0;-webkit-overflow-scrolling:touch}
-#attempts-area::-webkit-scrollbar{width:4px}
-#attempts-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
-
-/* Строка сетки */
-.attempt-row{
-  display:flex;flex-direction:column;gap:8px;padding:8px 12px;
-  background:rgba(255,255,255,.03);border-radius:12px;
-  animation:slideIn .3s ease-out;border:1px solid transparent;transition:all .2s;
-}
-/* Активная строка (в которой мы сейчас играем) */
-.attempt-row.active{
-  background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);
-}
-/* Будущие строки (еще не заполненные) */
-.attempt-row.future{opacity:0.3;}
-
-.row-top{display:flex;align-items:center;gap:10px;}
-.attempt-num{font-size:13px;color:#888;width:16px;text-align:right;font-weight:600;flex-shrink:0;}
-.attempt-chips{display:flex;gap:6px;flex:1;}
-
-/* Слоты в сетке */
-.slot{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.03);
-  border:2px dashed rgba(255,255,255,.15);cursor:pointer;transition:all .15s;
-  display:flex;justify-content:center;align-items:center;}
-.slot.filled{border:none;background:var(--chip-color);
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18);}
-.slot.selected{border-color:#2ecc71;box-shadow:0 0 10px rgba(46,204,113,.5);border-style:solid;}
-
-
-.color-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;
-  background:var(--chip-color);box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18);
-  transition:transform .1s;}
-.color-btn:active{transform:scale(.85);}
-
-/* Кнопка очистки всей строки */
-.clear-btn{
-  background:none;border:none;color:#888;font-size:18px;cursor:pointer;
-  padding:4px;display:flex;align-items:center;border-radius:4px;margin-left:auto;
-}
-.clear-btn:active{background:rgba(255,255,255,.1);color:#fff;}
-
-#delete-btn{
-  position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  width:36px;height:36px;border-radius:50%;
-  background:rgba(255,255,255,.1); /* Полупрозрачный фон */
-  border:1px solid rgba(255,255,255,.15);
-  color:#ff6b6b; /* Красный цвет иконки */
-  display:flex;justify-content:center;align-items:center;
-  cursor:pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-#delete-btn:active{
-  background:rgba(255,107,107,.2); /* Подсветка при нажатии */
-  transform: translateY(-50%) scale(0.85);
-}
-
-#delete-btn.hidden{
-  display:none !important;
-}
-
-@keyframes floatBtn {
-  0% { transform: translateY(-50%) scale(0); opacity: 0; }
-  100% { transform: translateY(-50%) scale(1); opacity: 1; }
-}
-#delete-btn:not(.hidden) {
-  animation: floatBtn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.slot{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.03);
-  border:2px dashed rgba(255,255,255,.18);cursor:pointer;transition:transform .15s}
-.slot.filled{border:none;background:var(--chip-color);
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 3px 0 rgba(255,255,255,.18)}
-.slot.filled.pop{animation:pop .25s cubic-bezier(.34,1.56,.64,1)}
-@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
-
+#palette { padding: 12px 8px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; background: var(--panel-bg); }
 .color-btn{width:clamp(38px,11vw,50px);height:clamp(38px,11vw,50px);border-radius:50%;border:none;cursor:pointer;
   background:var(--chip-color);box-shadow:inset 0 -4px 0 rgba(0,0,0,.28),inset 0 4px 0 rgba(255,255,255,.18),0 3px 8px rgba(0,0,0,.35);
   transition:transform .1s}
 .color-btn:active{transform:scale(.9)}
 .color-btn:disabled{opacity:.25;cursor:not-allowed;transform:none}
 
-#submit-btn{margin:0 16px 16px;padding:14px;background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;
-  color:#fff;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
-  box-shadow:0 4px 14px rgba(46,204,113,.35);transition:all .2s;width:calc(100% - 32px)}
-#submit-btn:disabled{background:rgba(255,255,255,.08);color:#666;box-shadow:none;cursor:not-allowed}
-#submit-btn:not(:disabled):active{transform:scale(.98)}
+#submit-btn{margin: 0; width: 100%; border-radius: 0 0 16px 16px; padding: 16px; 
+  background: linear-gradient(135deg,#2ecc71,#27ae60); border: none; color: #fff; 
+  font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s; }
+#submit-btn:disabled { background: var(--slot-bg); color: var(--text-muted); cursor: not-allowed; }
 
 #game-over-controls{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px}
 #game-over-controls .menu-btn{max-width:100%}
@@ -232,84 +170,84 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
 /* Setup */
 #setup-screen{padding:20px;overflow-y:auto;gap:4px}
 .setup-field{margin-bottom:18px}
-.setup-label{display:block;font-size:14px;color:#ccc;margin-bottom:8px}
+.setup-label{display:block;font-size:14px;color:var(--text-main);margin-bottom:8px}
 .setup-label span{color:#2ecc71;font-weight:700}
-.setup-input{width:100%;padding:8px 0;background:transparent;border:none;color:#eee;font-size:16px;
+.setup-input{width:100%;padding:8px 0;background:transparent;border:none;color:var(--text-main);font-size:16px;
   -webkit-appearance:none;appearance:none;height:32px}
-.setup-input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:rgba(255,255,255,.15)}
+.setup-input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--panel-border)}
 .setup-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;
   border-radius:50%;background:#2ecc71;margin-top:-9px;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer}
-.setup-input::-moz-range-track{height:6px;border-radius:3px;background:rgba(255,255,255,.15)}
+.setup-input::-moz-range-track{height:6px;border-radius:3px;background:var(--panel-border)}
 .setup-input::-moz-range-thumb{width:24px;height:24px;border:none;border-radius:50%;background:#2ecc71;cursor:pointer}
-.setup-checkbox{display:flex;align-items:center;gap:10px;font-size:15px;color:#ccc;cursor:pointer}
+.setup-checkbox{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--text-main);cursor:pointer}
 .setup-checkbox input{width:22px;height:22px;accent-color:#2ecc71}
 
 /* Stats */
 #stats-screen{padding:20px;overflow-y:auto}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px}
-.stat-card{background:rgba(255,255,255,.05);border-radius:12px;padding:14px;text-align:center}
-.stat-value{font-size:26px;font-weight:700;color:#fff;line-height:1.1}
-.stat-label{font-size:12px;color:#aaa;margin-top:4px}
+.stat-card{background:var(--panel-bg);border-radius:12px;padding:14px;text-align:center}
+.stat-value{font-size:26px;font-weight:700;color:var(--text-main);line-height:1.1}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:4px}
 .stat-value.rating{color:#f1c40f}
-.stats-note{font-size:12px;color:#888;text-align:center;margin-bottom:16px;font-style:italic}
-.dist-title{font-size:14px;color:#aaa;margin-bottom:12px;font-weight:600}
+.stats-note{font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:16px;font-style:italic}
+.dist-title{font-size:14px;color:var(--text-main);margin-bottom:12px;font-weight:600}
 .dist-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.dist-num{width:22px;text-align:right;font-size:13px;color:#888;flex-shrink:0}
-.dist-bar-container{flex:1;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden}
+.dist-num{width:22px;text-align:right;font-size:13px;color:var(--text-muted);flex-shrink:0}
+.dist-bar-container{flex:1;background:var(--slot-bg);border-radius:4px;overflow:hidden}
 .dist-bar{background:linear-gradient(90deg,#2ecc71,#27ae60);height:24px;display:flex;align-items:center;
   justify-content:flex-end;padding-right:8px;font-size:12px;font-weight:600;color:#fff;min-width:24px;
   border-radius:4px;transition:width .5s ease}
-.dist-bar.zero{background:transparent;color:#555;justify-content:flex-start;padding-left:8px}
+.dist-bar.zero{background:transparent;color:var(--text-muted);justify-content:flex-start;padding-left:8px}
 
 /* Rules */
 #rules-screen{padding:20px;overflow-y:auto}
-#rules-screen h2{margin:0 0 16px;font-size:20px}
-#rules-body{font-size:15px;line-height:1.6;color:#ccc}
+#rules-screen h2{margin:0 0 16px;font-size:20px;color:var(--text-main);}
+#rules-body{font-size:15px;line-height:1.6;color:var(--text-main);}
 #rules-body p{margin:0 0 12px}
 #rules-body .flag-line{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 #rules-body .flag-demo{width:18px;height:18px;border-radius:3px;flex-shrink:0}
 
 /* Modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;
   z-index:9000;padding:24px;animation:fadeIn .2s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal-content{background:linear-gradient(135deg,#1f1f3a,#16213e);border-radius:16px;padding:16px;
-  width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;border:1px solid rgba(255,255,255,.1)}
-.modal-content button{padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  color:#eee;border-radius:10px;font-size:16px;cursor:pointer;font-family:inherit;text-align:left;
+.modal-content{background:var(--modal-bg);border-radius:16px;padding:16px;
+  width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--panel-border)}
+.modal-content button{padding:14px 16px;background:var(--panel-bg);border:1px solid var(--panel-border);
+  color:var(--text-main);border-radius:10px;font-size:16px;cursor:pointer;font-family:inherit;text-align:left;
   display:flex;justify-content:space-between;align-items:center}
-.modal-content button.active{background:rgba(46,204,113,.2);border-color:#2ecc71}
-.modal-content button:active{background:rgba(255,255,255,.15)}
-
-/* Confetti */
-.confetti{position:fixed;top:-20px;z-index:9999;pointer-events:none;
-  animation:confetti-fall linear forwards;will-change:transform}
-@keyframes confetti-fall{0%{transform:translateY(0) rotate(0);opacity:1}
-  100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+.modal-content button.active{background:rgba(46,204,113,.15);border-color:#2ecc71}
+.modal-content button:active{background:var(--slot-bg)}
 
 /* Toast */
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
-  background:rgba(0,0,0,.9);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;
+  background:rgba(0,0,0,.85);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;
   opacity:0;transition:all .3s;pointer-events:none;z-index:10000;max-width:90%;text-align:center;
   border:1px solid rgba(255,255,255,.1)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* Overlay */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;flex-direction:column;
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;flex-direction:column;
   justify-content:center;align-items:center;z-index:9000;padding:24px;animation:fadeIn .3s}
-.win-card{background:linear-gradient(135deg,#1f1f3a,#16213e);border-radius:20px;padding:28px 24px;
-  text-align:center;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);
-  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);border:1px solid rgba(255,255,255,.1)}
+.win-card{background:var(--card-bg);border-radius:20px;padding:28px 24px;
+  text-align:center;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);border:1px solid var(--panel-border)}
 @keyframes popIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
 .win-emoji{font-size:64px;margin-bottom:8px;animation:bounce .8s ease-in-out infinite alternate}
 @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
-.win-title{font-size:24px;font-weight:800;margin-bottom:6px}
-.win-sub{color:#aaa;margin-bottom:20px;font-size:14px}
+.win-title{font-size:24px;font-weight:800;margin-bottom:6px;color:var(--text-main)}
+.win-sub{color:var(--text-muted);margin-bottom:20px;font-size:14px}
 .win-actions{display:flex;flex-direction:column;gap:8px}
-.share-btn{padding:12px 20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
-  color:#eee;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s}
-.share-btn:active{background:rgba(255,255,255,.18)}
-.share-btn.primary{background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;font-weight:600}
+.share-btn{padding:12px 20px;background:var(--panel-bg);border:1px solid var(--panel-border);
+  color:var(--text-main);border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s}
+.share-btn:active{background:var(--slot-bg)}
+.share-btn.primary{background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;font-weight:600;color:#fff;}
+
+/* Анимации конфетти */
+.confetti{position:fixed;top:-20px;z-index:9999;pointer-events:none;
+  animation:confetti-fall linear forwards;will-change:transform}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
 
 @media (max-width:360px){
   .chip{width:34px;height:34px}
@@ -324,6 +262,7 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
     <button id="back-btn" class="icon-btn hidden" aria-label="Back">←</button>
     <div id="title">Color Daily</div>
     <button id="restart-btn" class="icon-btn hidden" aria-label="Restart" title="Start over">🔄</button>
+    <button id="theme-btn" class="icon-btn" aria-label="Theme">🌙</button>
     <button id="lang-btn" class="icon-btn" aria-label="Language">🌐</button>
   </header>
 
@@ -372,12 +311,12 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
       <div id="current-chips">
         <div id="slots-inner"></div>
         <button id="delete-btn" class="hidden" aria-label="Delete">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-    <line x1="18" y1="9" x2="12" y2="15"></line>
-    <line x1="12" y1="9" x2="18" y2="15"></line>
-  </svg>
-</button>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+            <line x1="18" y1="9" x2="12" y2="15"></line>
+            <line x1="12" y1="9" x2="18" y2="15"></line>
+          </svg>
+        </button>
       </div>
       <div id="palette"></div>
       <button id="submit-btn" disabled></button>
@@ -408,7 +347,7 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
   <div class="modal-content">
     <button data-lang="en">English <span class="status-badge">EN</span></button>
     <button data-lang="ru">Русский <span class="status-badge">RU</span></button>
-    <button data-lang="th">ไทย <span class="status-badge">TH</span></button> <!-- ДОБАВИТЬ ВОТ ЭТУ СТРОКУ -->
+    <button data-lang="th">ไทย <span class="status-badge">TH</span></button>
   </div>
 </div>
 
@@ -421,13 +360,14 @@ html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe
    CONFIG
    ============================================================ */
 const CONFIG = {
-  startDate: '2026-10-23', // Поставьте реальную дату запуска
-  resetOffsetHours: 0,     // 0 = UTC
-  apiUrl: '',              // URL бэкенда (если есть)
-  yandexMetrikaId: '113756580',     // Номер счётчика
-  donateUrl: 'https://app.lava.top/jacobzln',
-//  donateUrl: 'https://boosty.to/jacobzln',
+  startDate: '2026-10-23',
+  resetOffsetHours: 0,
+  apiUrl: '',
+  yandexMetrikaId: '113756580',
+  donateUrl: 'https://boosty.to/jacobzln',
   shareBrand: 'Color Daily',
+  tgBotName: 'color_daily_game_bot', 
+  maxBotName: 'color_daily_bot' 
 };
 
 /* ============================================================
@@ -438,212 +378,101 @@ const I18N = {
     title: 'Color Daily',
     menu_title: '🌈 Color Daily',
     menu_subtitle: 'Guess the 4-color code in 10 tries',
-    play_daily: 'Daily puzzle',
-    play_unlimited: 'Unlimited mode',
-    unlimited_title: 'Unlimited',
-    resume: 'Resume',
-    stats: 'Statistics',
-    rules: 'How to play',
-    donate: 'Support the game',
-    status_new: 'NEW',
-    status_won: '✓ done',
-    status_lost: '✗ done',
-    play_challenge: 'Challenge a friend',
-    challenge_title: 'Create a challenge',
-    challenge_submit: 'Send link',
-    challenge_hint: 'Guess the code to create a challenge:',
-    challenge_wait: 'Waiting for friend...',
-    challenge_win: 'You cracked the friend\'s code!',
+    play_daily: 'Daily puzzle', play_unlimited: 'Unlimited mode', play_challenge: 'Challenge a friend', unlimited_title: 'Unlimited', resume: 'Resume',
+    stats: 'Statistics', rules: 'How to play', donate: 'Support the game',
+    status_new: 'NEW', status_won: '✓ done', status_lost: '✗ done',
+    attempt_n: 'Attempt {n} of {m}', attempt_win: 'Solved in {n} tries', attempt_lose: 'Not solved. New puzzle tomorrow',
+    submit: 'Submit', selected: 'Selected {n}/{m}', next_in: '⏱ Next puzzle in {t}',
+    challenge_title: 'Create a challenge', challenge_submit: 'Send link', challenge_hint: 'Guess the code to create a challenge:', challenge_win: 'You cracked the friend\'s code!',
     link_copied: 'Link copied!',
-    attempt_n: 'Attempt {n} of {m}',
-    attempt_win: 'Solved in {n} tries',
-    attempt_lose: 'Not solved. New puzzle tomorrow',
-    submit: 'Submit',
-    selected: 'Selected {n}/{m}',
-    next_in: '⏱ Next puzzle in {t}',
-    win_1_t: '🌟 Absolute Legend!', win_1_s: 'First try!',
-    win_2_t: '🎯 Sniper!',          win_2_s: 'Two tries!',
-    win_3_t: '🔥 On Fire!',         win_3_s: 'Three tries!',
-    win_4_t: '✨ Excellent!',        win_4_s: 'Four tries!',
-    win_5_t: '👍 Great Job!',        win_5_s: 'Five tries!',
-    win_6_t: '😊 Good!',            win_6_s: 'Six tries!',
-    win_7_t: '🤔 Got it!',          win_7_s: 'Seven tries!',
-    win_8_t: '😅 Phew!',            win_8_s: 'Eight tries!',
-    win_9_t: '🫣 Down to the wire!', win_9_s: 'Nine tries! One left...',
-    win_10_t: '😎 Clutch!',         win_10_s: 'Last try! Heroic!',
-    win_default_t: '🎉 Solved!',    win_default_s: 'In {n} tries',
+    win_1_t: '🌟 Absolute Legend!', win_1_s: 'First try!', win_2_t: '🎯 Sniper!', win_2_s: 'Two tries!',
+    win_3_t: '🔥 On Fire!', win_3_s: 'Three tries!', win_4_t: '✨ Excellent!', win_4_s: 'Four tries!',
+    win_5_t: '👍 Great Job!', win_5_s: 'Five tries!', win_6_t: '😊 Good!', win_6_s: 'Six tries!',
+    win_7_t: '🤔 Got it!', win_7_s: 'Seven tries!', win_8_t: '😅 Phew!', win_8_s: 'Eight tries!',
+    win_9_t: '🫣 Down to the wire!', win_9_s: 'Nine tries! One left...', win_10_t: '😎 Clutch!', win_10_s: 'Last try! Heroic!',
+    win_default_t: '🎉 Solved!', win_default_s: 'In {n} tries',
     lose_title: '🤷‍♂️ Not solved', lose_sub: 'Better luck tomorrow',
-    stats_only_daily: 'Only the daily puzzle counts',
-    stats_played: 'Played', stats_won: 'Won ({p}%)',
-    stats_streak: 'Current streak', stats_best: 'Best streak',
-    stats_rating: 'Rating',
-    stats_dist_title: 'Guess distribution',
-    reset_stats: 'Reset stats',
-    reset_confirm: 'Reset all statistics?',
-    stats_reset_ok: 'Statistics reset',
+    stats_only_daily: 'Only the daily puzzle counts', stats_played: 'Played', stats_won: 'Won ({p}%)',
+    stats_streak: 'Current streak', stats_best: 'Best streak', stats_rating: 'Rating', stats_dist_title: 'Guess distribution',
+    reset_stats: 'Reset stats', reset_confirm: 'Reset all statistics?', stats_reset_ok: 'Statistics reset',
     rules_title: 'How to play',
     rules_body_html: `
       <p>Your goal is to guess a secret code of 4 colors in 10 tries.</p>
-      
       <p><strong>How to play:</strong></p>
       <p>Click on the colored circles on the panel below to fill the empty spaces. If you click on a filled space, the color will be removed so you can choose another one.</p>
-      
       <p><strong>What the hints mean:</strong></p>
       <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>The color is correct and in the right place.</span></div>
       <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>The color is in the code, but in a different place.</span></div>
       <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>This color is not in the code at all.</span></div>
-      
-      <p style="margin-top:16px;color:#888;font-size:14px">Note: the hints do not point to a specific circle. They only show the total number of correct colors.</p>
-      
-      <p style="color:#888;font-size:14px">A new puzzle appears every day at 00:00 UTC. It is the same for all players.</p>
+      <p style="margin-top:16px;color:var(--text-muted);font-size:14px">Note: the hints do not point to a specific circle. They only show the total number of correct colors.</p>
+      <p style="color:var(--text-muted);font-size:14px">A new puzzle appears every day at 00:00 UTC. It is the same for all players.</p>
     `,
-    share: 'Share result',
-    share_copy: 'Copy as text',
-    share_copied: 'Copied!',
-    share_downloaded: 'Image downloaded',
-    share_failed: 'Sharing failed',
-    share_title: 'Color Daily #{n}',
-    share_result_win: 'Solved in {n}',
-    share_result_lose: 'Not solved',
-    new_game: 'New practice game',
-    new_game_confirm: 'Start a new game? Current progress will be lost.',
-    go_home: 'Home',
-    setup_title: 'Practice settings',
-    setup_colors: 'Colors', setup_chips: 'Chips', setup_attempts: 'Attempts',
-    setup_repeats: 'Allow repeated colors',
-    start_game: 'Start game',
-    too_many_chips: 'More chips than colors',
-    lang_modal_title: 'Language',
-    donate_clicked: 'Thanks for your support!',
+    share: 'Share result', share_copy: 'Copy as text', share_copied: 'Copied!', share_downloaded: 'Image downloaded', share_failed: 'Sharing failed',
+    share_title: 'Color Daily #{n}', share_result_win: 'Solved in {n}', share_result_lose: 'Not solved', hold_to_save: 'Hold the image to save',
+    new_game: 'New practice game', new_game_confirm: 'Start a new game? Current progress will be lost.', go_home: 'Home',
+    setup_title: 'Practice settings', setup_colors: 'Colors', setup_chips: 'Chips', setup_attempts: 'Attempts',
+    setup_repeats: 'Allow repeated colors', start_game: 'Start game', too_many_chips: 'More chips than colors',
+    lang_modal_title: 'Language', donate_clicked: 'Thanks for your support!',
   },
   ru: {
     title: 'Цвет дня',
     menu_title: '🌈 Цвет дня',
     menu_subtitle: 'Угадай набор из 4 цветов за 10 попыток',
-    play_daily: 'Игра дня',
-    play_unlimited: 'Безлимитный режим',
-    unlimited_title: 'Безлимит',
-    resume: 'Продолжить',
-    stats: 'Статистика',
-    rules: 'Правила',
-    donate: 'Поддержать',
-    status_new: 'НОВОЕ',
-    status_won: '✓ пройдено',
-    status_lost: '✗ пройдено',
-    play_challenge: 'Загадать другу',
-    challenge_title: 'Создать вызов',
-    challenge_submit: 'Отправить ссылку',
-    challenge_hint: 'Загадайте код, чтобы отправить другу:',
-    challenge_wait: 'Ждем друга...',
-    challenge_win: 'Вы взломали код друга!',
+    play_daily: 'Игра дня', play_unlimited: 'Безлимитный режим', play_challenge: 'Загадать другу', unlimited_title: 'Безлимит', resume: 'Продолжить',
+    stats: 'Статистика', rules: 'Правила', donate: 'Поддержать',
+    status_new: 'НОВОЕ', status_won: '✓ пройдено', status_lost: '✗ пройдено',
+    attempt_n: 'Попытка {n} из {m}', attempt_win: 'Угадано за {n} попыток', attempt_lose: 'Не угадано. Новый набор — завтра',
+    submit: 'Отправить', selected: 'Выбрано {n}/{m}', next_in: '⏱ До нового набора: {t}',
+    challenge_title: 'Создать вызов', challenge_submit: 'Отправить ссылку', challenge_hint: 'Загадайте код, чтобы отправить другу:', challenge_win: 'Вы взломали код друга!',
     link_copied: 'Ссылка скопирована!',
-    attempt_n: 'Попытка {n} из {m}',
-    attempt_win: 'Угадано за {n} попыток',
-    attempt_lose: 'Не угадано. Новый набор — завтра',
-    submit: 'Отправить',
-    selected: 'Выбрано {n}/{m}',
-    next_in: '⏱ До нового набора: {t}',
-    win_1_t: '🌟 Абсолютная легенда!', win_1_s: 'С первой попытки!',
-    win_2_t: '🎯 Снайпер!',            win_2_s: 'Две попытки!',
-    win_3_t: '🔥 Огонь!',              win_3_s: 'Три попытки!',
-    win_4_t: '✨ Отлично!',             win_4_s: 'Четыре попытки!',
-    win_5_t: '👍 Молодец!',             win_5_s: 'Пять попыток!',
-    win_6_t: '😊 Хорошо!',             win_6_s: 'Шесть попыток!',
-    win_7_t: '🤔 Вдумчиво!',           win_7_s: 'Семь попыток!',
-    win_8_t: '😅 Уф, почти!',          win_8_s: 'Восемь попыток!',
-    win_9_t: '🫣 На грани!',           win_9_s: 'Девять попыток! Остался один шанс...',
-    win_10_t: '😎 Клатч!',             win_10_s: 'На последней попытке! Герой!',
-    win_default_t: '🎉 Угадано!',       win_default_s: 'За {n} попыток',
+    win_1_t: '🌟 Абсолютная легенда!', win_1_s: 'С первой попытки!', win_2_t: '🎯 Снайпер!', win_2_s: 'Две попытки!',
+    win_3_t: '🔥 Огонь!', win_3_s: 'Три попытки!', win_4_t: '✨ Отлично!', win_4_s: 'Четыре попытки!',
+    win_5_t: '👍 Молодец!', win_5_s: 'Пять попыток!', win_6_t: '😊 Хорошо!', win_6_s: 'Шесть попыток!',
+    win_7_t: '🤔 Вдумчиво!', win_7_s: 'Семь попыток!', win_8_t: '😅 Уф, почти!', win_8_s: 'Восемь попыток!',
+    win_9_t: '🫣 На грани!', win_9_s: 'Девять попыток! Остался один шанс...', win_10_t: '😎 Клатч!', win_10_s: 'На последней попытке! Герой!',
+    win_default_t: '🎉 Угадано!', win_default_s: 'За {n} попыток',
     lose_title: '🤷‍♂️ Не угадано', lose_sub: 'Повезёт завтра',
-    stats_only_daily: 'Учитывается только игра дня',
-    stats_played: 'Сыграно', stats_won: 'Побед ({p}%)',
-    stats_streak: 'Серия сейчас', stats_best: 'Лучшая серия',
-    stats_rating: 'Рейтинг',
-    stats_dist_title: 'Распределение по попыткам',
-    reset_stats: 'Сбросить статистику',
-    reset_confirm: 'Сбросить всю статистику?',
-    stats_reset_ok: 'Статистика сброшена',
+    stats_only_daily: 'Учитывается только игра дня', stats_played: 'Сыграно', stats_won: 'Побед ({p}%)',
+    stats_streak: 'Серия сейчас', stats_best: 'Лучшая серия', stats_rating: 'Рейтинг', stats_dist_title: 'Распределение по попыткам',
+    reset_stats: 'Сбросить статистику', reset_confirm: 'Сбросить всю статистику?', stats_reset_ok: 'Статистика сброшена',
     rules_title: 'Правила игры',
     rules_body_html: `
       <p>Ваша задача — угадать скрытый набор из 4 цветов за 10 попыток.</p>
-      
       <p><strong>Как играть:</strong></p>
       <p>Нажимайте на цветные кружочки на панели внизу, чтобы заполнить пустые ячейки. Если вы нажмете на уже заполненную ячейку, цвет из нее исчезнет, и вы сможете выбрать другой.</p>
-      
       <p><strong>Что означают подсказки после хода:</strong></p>
       <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>Цвет угадан и стоит на своем месте.</span></div>
       <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>Такой цвет есть в наборе, но он стоит на другом месте.</span></div>
       <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>Этого цвета в загаданном наборе нет.</span></div>
-      
-      <p style="margin-top:16px;color:#888;font-size:14px">Обратите внимание: подсказки не указывают на конкретный кружочек. Они показывают только общее количество угаданных цветов, чтобы вам было интереснее думать.</p>
-      
-      <p style="color:#888;font-size:14px">Новый набор появляется каждый день в 00:00 по мировому времени. Он одинаковый для всех игроков.</p>
+      <p style="margin-top:16px;color:var(--text-muted);font-size:14px">Обратите внимание: подсказки не указывают на конкретный кружочек. Они показывают только общее количество угаданных цветов, чтобы вам было интереснее думать.</p>
+      <p style="color:var(--text-muted);font-size:14px">Новый набор появляется каждый день в 00:00 по мировому времени. Он одинаковый для всех игроков.</p>
     `,
-    share: 'Поделиться результатом',
-    share_copy: 'Скопировать текстом',
-    share_copied: 'Скопировано!',
-    share_downloaded: 'Картинка скачана',
-    share_failed: 'Не удалось поделиться',
-    share_title: 'Цвет дня #{n}',
-    share_result_win: 'Угадано за {n}',
-    share_result_lose: 'Не угадано',
-    new_game: 'Новая игра',
-    new_game_confirm: 'Начать новую игру? Текущий прогресс будет потерян.',
-    go_home: 'Домой',
-    setup_title: 'Настройки тренировки',
-    setup_colors: 'Цветов', setup_chips: 'Фишек', setup_attempts: 'Попыток',
-    setup_repeats: 'Разрешить повторение цветов',
-    start_game: 'Начать игру',
-    too_many_chips: 'Фишек больше, чем цветов',
-    lang_modal_title: 'Язык',
-    donate_clicked: 'Спасибо за поддержку!',
+    share: 'Поделиться результатом', share_copy: 'Скопировать текстом', share_copied: 'Скопировано!', share_downloaded: 'Картинка скачана', share_failed: 'Не удалось поделиться',
+    share_title: 'Цвет дня #{n}', share_result_win: 'Угадано за {n}', share_result_lose: 'Не угадано', hold_to_save: 'Удерживайте картинку, чтобы сохранить',
+    new_game: 'Новая игра', new_game_confirm: 'Начать новую игру? Текущий прогресс будет потерян.', go_home: 'Домой',
+    setup_title: 'Настройки тренировки', setup_colors: 'Цветов', setup_chips: 'Фишек', setup_attempts: 'Попыток',
+    setup_repeats: 'Разрешить повторение цветов', start_game: 'Начать игру', too_many_chips: 'Фишек больше, чем цветов',
+    lang_modal_title: 'Язык', donate_clicked: 'Спасибо за поддержку!',
   },
   th: {
-    title: 'สีประจำวัน',
-    menu_title: '🌈 สีประจำวัน',
-    menu_subtitle: 'ทายชุดสี 4 สีใน 10 ครั้ง',
-    play_daily: 'ชุดประจำวัน',
-    play_unlimited: 'โหมดไม่จำกัด',
-    unlimited_title: 'ไม่จำกัด',
-    resume: 'เล่นต่อ',
-    stats: 'สถิติ',
-    rules: 'วิธีเล่น',
-    donate: 'สนับสนุนเกม',
-    status_new: 'ใหม่',
-    status_won: '✓ เล่นแล้ว',
-    status_lost: '✗ เล่นแล้ว',
-    play_challenge: 'ท้าทายเพื่อน',
-    challenge_title: 'สร้างการท้าทาย',
-    challenge_submit: 'ส่งลิงก์',
-    challenge_hint: 'สร้างรหัส 4 สีเพื่อส่งให้เพื่อน:',
-    challenge_win: 'คุณถอดรหัสของเพื่อนได้แล้ว!',
+    title: 'สีประจำวัน', menu_title: '🌈 สีประจำวัน', menu_subtitle: 'ทายชุดสี 4 สีใน 10 ครั้ง',
+    play_daily: 'ชุดประจำวัน', play_unlimited: 'โหมดไม่จำกัด', play_challenge: 'ท้าทายเพื่อน', unlimited_title: 'ไม่จำกัด', resume: 'เล่นต่อ',
+    stats: 'สถิติ', rules: 'วิธีเล่น', donate: 'สนับสนุนเกม',
+    status_new: 'ใหม่', status_won: '✓ เล่นแล้ว', status_lost: '✗ เล่นแล้ว',
+    attempt_n: 'ครั้งที่ {n} จาก {m}', attempt_win: 'ทายถูกใน {n} ครั้ง', attempt_lose: 'ยังไม่ถูก ชุดใหม่พรุ่งนี้',
+    submit: 'ส่ง', selected: 'เลือก {n}/{m}', next_in: '⏱ ชุดถัดไปใน {t}',
+    challenge_title: 'สร้างการท้าทาย', challenge_submit: 'ส่งลิงก์', challenge_hint: 'สร้างรหัส 4 สีเพื่อส่งให้เพื่อน:', challenge_win: 'คุณถอดรหัสของเพื่อนได้แล้ว!',
     link_copied: 'คัดลอกลิงก์แล้ว!',
-    attempt_n: 'ครั้งที่ {n} จาก {m}',
-    attempt_win: 'ทายถูกใน {n} ครั้ง',
-    attempt_lose: 'ยังไม่ถูก ชุดใหม่พรุ่งนี้',
-    submit: 'ส่ง',
-    selected: 'เลือก {n}/{m}',
-    next_in: '⏱ ชุดถัดไปใน {t}',
-    win_1_t: '🌟 สุดยอด!',    win_1_s: 'ครั้งแรก!',
-    win_2_t: '🎯 แม่นมาก!',   win_2_s: 'สองครั้ง!',
-    win_3_t: '🔥 ร้อนแรง!',   win_3_s: 'สามครั้ง!',
-    win_4_t: '✨ ยอดเยี่ยม!',  win_4_s: 'สี่ครั้ง!',
-    win_5_t: '👍 เก่งมาก!',    win_5_s: 'ห้าครั้ง!',
-    win_6_t: '😊 ดีมาก!',      win_6_s: 'หกครั้ง!',
-    win_7_t: '🤔 เกือบไป!',    win_7_s: 'เจ็ดครั้ง!',
-    win_8_t: '😅 เฮ้อ!',       win_8_s: 'แปดครั้ง!',
-    win_9_t: '🫣 เฉียดฉิว!',   win_9_s: 'เก้าครั้ง!',
-    win_10_t: '😎 พลิกวิกฤต!', win_10_s: 'ครั้งสุดท้าย!',
+    win_1_t: '🌟 สุดยอด!', win_1_s: 'ครั้งแรก!', win_2_t: '🎯 แม่นมาก!', win_2_s: 'สองครั้ง!',
+    win_3_t: '🔥 ร้อนแรง!', win_3_s: 'สามครั้ง!', win_4_t: '✨ ยอดเยี่ยม!', win_4_s: 'สี่ครั้ง!',
+    win_5_t: '👍 เก่งมาก!', win_5_s: 'ห้าครั้ง!', win_6_t: '😊 ดีมาก!', win_6_s: 'หกครั้ง!',
+    win_7_t: '🤔 เกือบไป!', win_7_s: 'เจ็ดครั้ง!', win_8_t: '😅 เฮ้อ!', win_8_s: 'แปดครั้ง!',
+    win_9_t: '🫣 เฉียดฉิว!', win_9_s: 'เก้าครั้ง!', win_10_t: '😎 พลิกวิกฤต!', win_10_s: 'ครั้งสุดท้าย!',
     win_default_t: '🎉 ทายถูก!', win_default_s: 'ใน {n} ครั้ง',
     lose_title: '🤷‍♂️ ยังไม่ถูก', lose_sub: 'โชคดีพรุ่งนี้',
-    stats_only_daily: 'นับเฉพาะชุดประจำวัน',
-    stats_played: 'เล่นแล้ว', stats_won: 'ชนะ ({p}%)',
-    stats_streak: 'สตรีคปัจจุบัน', stats_best: 'สตรีคสูงสุด',
-    stats_rating: 'คะแนน',
-    stats_dist_title: 'การกระจายตามจำนวนครั้ง',
-    reset_stats: 'รีเซ็ตสถิติ',
-    reset_confirm: 'รีเซ็ตสถิติทั้งหมด?',
-    stats_reset_ok: 'รีเซ็ตแล้ว',
+    stats_only_daily: 'นับเฉพาะชุดประจำวัน', stats_played: 'เล่นแล้ว', stats_won: 'ชนะ ({p}%)',
+    stats_streak: 'สตรีคปัจจุบัน', stats_best: 'สตรีคสูงสุด', stats_rating: 'คะแนน', stats_dist_title: 'การกระจายตามจำนวนครั้ง',
+    reset_stats: 'รีเซ็ตสถิติ', reset_confirm: 'รีเซ็ตสถิติทั้งหมด?', stats_reset_ok: 'รีเซ็ตแล้ว',
     rules_title: 'วิธีเล่น',
     rules_body_html: `
       <p>ทายชุดสี 4 สีที่ซ่อนอยู่ภายใน 10 ครั้ง</p>
@@ -652,28 +481,15 @@ const I18N = {
       <div class="flag-line"><span class="flag-demo" style="background:#2ecc71"></span><span>สีถูกและตำแหน่งถูก</span></div>
       <div class="flag-line"><span class="flag-demo" style="background:#f1c40f"></span><span>สีถูกแต่ตำแหน่งผิด</span></div>
       <div class="flag-line"><span class="flag-demo" style="background:#555"></span><span>ไม่มีสีนี้ในชุด</span></div>
-      <p style="margin-top:16px;color:#888;font-size:13px">ธงไม่ได้ผูกกับชิปแต่ละอัน — แสดงเฉพาะชุดผลลัพธ์</p>
-      <p style="color:#888;font-size:13px">ชุดใหม่ทุกวัน 00:00 UTC เหมือนกันทุกคน</p>
+      <p style="margin-top:16px;color:var(--text-muted);font-size:13px">ธงไม่ได้ผูกกับชิปแต่ละอัน — แสดงเฉพาะชุดผลลัพธ์</p>
+      <p style="color:var(--text-muted);font-size:13px">ชุดใหม่ทุกวัน 00:00 UTC เหมือนกันทุกคน</p>
     `,
-    share: 'แชร์ผลลัพธ์',
-    share_copy: 'คัดลอกเป็นข้อความ',
-    share_copied: 'คัดลอกแล้ว!',
-    share_downloaded: 'ดาวน์โหลดรูปแล้ว',
-    share_failed: 'แชร์ไม่สำเร็จ',
-    share_title: 'สีประจำวัน #{n}',
-    share_result_win: 'ทายถูกใน {n}',
-    share_result_lose: 'ยังไม่ถูก',
-    new_game: 'เกมใหม่',
-    new_game_confirm: 'เริ่มเกมใหม่? ความคืบหน้าจะหายไป',
-    go_home: 'หน้าหลัก',
-    setup_title: 'ตั้งค่าโหมดฝึกซ้อม',
-    setup_colors: 'สี', setup_chips: 'ชิป', setup_attempts: 'ครั้ง',
-    setup_repeats: 'อนุญาตให้สีซ้ำ',
-    start_game: 'เริ่มเกม',
-    too_many_chips: 'ชิปมากกว่าจำนวนสี',
-    lang_modal_title: 'ภาษา',
-    donate_clicked: 'ขอบคุณที่สนับสนุน!',
-    hold_to_save: 'กดค้างที่รูปเพื่อบันทึก'
+    share: 'แชร์ผลลัพธ์', share_copy: 'คัดลอกเป็นข้อความ', share_copied: 'คัดลอกแล้ว!', share_downloaded: 'ดาวน์โหลดรูปแล้ว', share_failed: 'แชร์ไม่สำเร็จ',
+    share_title: 'สีประจำวัน #{n}', share_result_win: 'ทายถูกใน {n}', share_result_lose: 'ยังไม่ถูก', hold_to_save: 'กดค้างที่รูปเพื่อบันทึก',
+    new_game: 'เกมใหม่', new_game_confirm: 'เริ่มเกมใหม่? ความคืบหน้าจะหายไป', go_home: 'หน้าหลัก',
+    setup_title: 'ตั้งค่าโหมดฝึกซ้อม', setup_colors: 'สี', setup_chips: 'ชิป', setup_attempts: 'ครั้ง',
+    setup_repeats: 'อนุญาตให้สีซ้ำ', start_game: 'เริ่มเกม', too_many_chips: 'ชิปมากกว่าจำนวนสี',
+    lang_modal_title: 'ภาษา', donate_clicked: 'ขอบคุณที่สนับสนุน!'
   }
 };
 
@@ -681,40 +497,22 @@ const I18N = {
    CONSTANTS
    ============================================================ */
 const COLORS = [
-  { hex: '#e74c3c' }, // 1. Красный
-  { hex: '#3498db' }, // 2. Синий
-  { hex: '#2ecc71' }, // 3. Зеленый
-  { hex: '#f1c40f' }, // 4. Желтый
-  { hex: '#9b59b6' }, // 5. Фиолетовый
-  { hex: '#ff6b9d' }, // 6. Розовый (вместо оранжевого)
-  { hex: '#00d4ff' }, // 7. Голубой
-  { hex: '#8b4513' }, // 8. Коричневый
-  { hex: '#95a5a6' }, // 9. Серый
-  { hex: '#ffffff' }  // 10. Белый (для самых сложных режимов)
+  { hex: '#e74c3c' }, { hex: '#3498db' }, { hex: '#2ecc71' },
+  { hex: '#f1c40f' }, { hex: '#9b59b6' }, { hex: '#ff6b9d' },
+  { hex: '#00d4ff' }, { hex: '#8b4513' }, { hex: '#95a5a6' },
+  { hex: '#ffffff' } 
 ];
 const DAILY = { COLORS:6, CHIPS:4, ATTEMPTS:10 };
 
-const KEYS = {
-  daily:'cd_daily_v2',
-  stats:'cd_stats_v2',
-  lang:'cd_lang',
-  uid:'cd_uid',
-  unlimited:'cd_unlimited_v2',
-};
+const KEYS = { daily:'cd_daily_v2', stats:'cd_stats_v2', lang:'cd_lang', uid:'cd_uid', unlimited:'cd_unlimited_v2', theme: 'cd_theme' };
 
-let currentLang = 'en';
-let game = null;
-let currentScreen = 'menu';
-let stats = null;
-let tg = null;
-let countdownInterval = null;
+let currentLang = 'en', game = null, currentScreen = 'menu', stats = null, tg = null, countdownInterval = null;
 
 /* ============================================================
    PLATFORM (TG / MAX / WEB)
    ============================================================ */
 const Platform = {
-  type: 'web',
-  maxApp: null,
+  type: 'web', maxApp: null,
   init() {
     if (window.Telegram?.WebApp?.initData !== undefined) {
       this.type = 'tg'; tg = window.Telegram.WebApp; tg.ready(); tg.expand();
@@ -755,6 +553,7 @@ const Platform = {
 };
 
 const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function t(key, vars) {
   const dict = I18N[currentLang] || I18N.en;
@@ -762,57 +561,25 @@ function t(key, vars) {
   if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
   return s;
 }
-function hashString(s) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
-  return h >>> 0;
-}
-function mulberry32(a) {
-  return function() {
-    a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
+function hashString(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h >>> 0; }
+function mulberry32(a) { return function() { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function pad2(n) { return String(n).padStart(2, '0'); }
-function toast(msg, dur = 2200) {
-  const el = $('#toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), dur);
-}
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+function toast(msg, dur = 2200) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), dur); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function getUtcDayInfo() {
-  const now = new Date();
-  const shifted = new Date(now.getTime() + CONFIG.resetOffsetHours * 3600000);
+  const now = new Date(), shifted = new Date(now.getTime() + CONFIG.resetOffsetHours * 3600000);
   const dateStr = shifted.toISOString().slice(0, 10);
-  const start = new Date(CONFIG.startDate + 'T00:00:00Z');
-  const today = new Date(dateStr + 'T00:00:00Z');
-  const dayNum = Math.floor((today - start) / 86400000) + 1;
-  return { dateStr, dayNum };
+  const start = new Date(CONFIG.startDate + 'T00:00:00Z'), today = new Date(dateStr + 'T00:00:00Z');
+  return { dateStr, dayNum: Math.floor((today - start) / 86400000) + 1 };
 }
 function msUntilNextDay() {
-  const now = new Date();
-  const shifted = new Date(now.getTime() + CONFIG.resetOffsetHours * 3600000);
+  const now = new Date(), shifted = new Date(now.getTime() + CONFIG.resetOffsetHours * 3600000);
   const next = new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate() + 1));
   return next.getTime() - shifted.getTime();
 }
-function formatCountdown(ms) {
-  if (ms < 0) ms = 0;
-  const s = Math.floor(ms / 1000);
-  return `${pad2(Math.floor(s / 3600))}:${pad2(Math.floor((s % 3600) / 60))}:${pad2(s % 60)}`;
-}
-function getUserId() {
-  let uid = localStorage.getItem(KEYS.uid);
-  if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem(KEYS.uid, uid); }
-  return uid;
-}
+function formatCountdown(ms) { if (ms < 0) ms = 0; const s = Math.floor(ms / 1000); return `${pad2(Math.floor(s / 3600))}:${pad2(Math.floor((s % 3600) / 60))}:${pad2(s % 60)}`; }
+function getUserId() { let uid = localStorage.getItem(KEYS.uid); if (!uid) { uid = 'u_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem(KEYS.uid, uid); } return uid; }
 function trackEvent(name, data = {}) {
   try {
     const payload = { event: name, userId: getUserId(), ts: Date.now(), day: getUtcDayInfo().dayNum, lang: currentLang, ...data };
@@ -836,14 +603,14 @@ function initYandexMetrika(id) {
 }
 
 /* ============================================================
-   LANGUAGE
+   LANGUAGE & THEME
    ============================================================ */
 function detectLang() {
   const saved = localStorage.getItem(KEYS.lang);
   if (saved && I18N[saved]) return saved;
   const nav = (navigator.language || 'en').toLowerCase();
   if (nav.startsWith('ru')) return 'ru';
-  if (nav.startsWith('th')) return 'th'; // <-- ДОБАВИТЬ ВОТ ЭТУ СТРОКУ
+  if (nav.startsWith('th')) return 'th';
   return 'en';
 }
 function setLang(lang) {
@@ -854,6 +621,19 @@ function setLang(lang) {
   document.documentElement.lang = lang;
   applyTranslations();
   if (prev !== lang) trackEvent('lang_changed', { from: prev, to: lang });
+}
+function applyTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  localStorage.setItem(KEYS.theme, theme);
+  $('#theme-btn').textContent = theme === 'dark' ? '☀️' : '🌙';
+  
+  if (Platform.type === 'tg' && tg) {
+    try {
+      const bg = theme === 'dark' ? '#1a1a2e' : '#f0f2f5';
+      tg.setHeaderColor(bg);
+      tg.setBackgroundColor(bg);
+    } catch(e){}
+  }
 }
 function applyTranslations() {
   document.title = t('title');
@@ -890,13 +670,8 @@ function applyTranslations() {
 /* ============================================================
    STATS
    ============================================================ */
-function defaultStats() {
-  return { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, totalPoints: 0, distribution: {}, lastPlayedDate: null };
-}
-function loadStats() {
-  try { return Object.assign(defaultStats(), JSON.parse(localStorage.getItem(KEYS.stats)) || {}); }
-  catch { return defaultStats(); }
-}
+function defaultStats() { return { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, totalPoints: 0, distribution: {}, lastPlayedDate: null }; }
+function loadStats() { try { return Object.assign(defaultStats(), JSON.parse(localStorage.getItem(KEYS.stats)) || {}); } catch { return defaultStats(); } }
 function saveStats() { localStorage.setItem(KEYS.stats, JSON.stringify(stats)); }
 function computeRating() { return stats.played === 0 ? 0 : Math.round((stats.totalPoints / stats.played) * 100); }
 function updateStatsAfterGame(won, attempts, todayStr) {
@@ -915,21 +690,17 @@ function updateStatsAfterGame(won, attempts, todayStr) {
 }
 
 /* ============================================================
-   GAME LOGIC
+   GAME LOGIC & STATE
    ============================================================ */
 function generateTarget(seed, numColors, numChips, allowRepeats) {
   const rand = mulberry32(seed);
   if (allowRepeats) return Array.from({ length: numChips }, () => Math.floor(rand() * numColors));
-  const pool = Array.from({ length: numColors }, (_, i) => i);
-  const target = [];
+  const pool = Array.from({ length: numColors }, (_, i) => i), target = [];
   for (let i = 0; i < numChips; i++) { const idx = Math.floor(rand() * pool.length); target.push(pool[idx]); pool.splice(idx, 1); }
   return target;
 }
 function checkGuess(target, guess) {
-  const n = target.length;
-  const result = new Array(n).fill('gray');
-  const tUsed = new Array(n).fill(false);
-  const gUsed = new Array(n).fill(false);
+  const n = target.length, result = new Array(n).fill('gray'), tUsed = new Array(n).fill(false), gUsed = new Array(n).fill(false);
   for (let i = 0; i < n; i++) { if (guess[i] === target[i]) { result[i] = 'green'; tUsed[i] = gUsed[i] = true; } }
   for (let i = 0; i < n; i++) {
     if (gUsed[i]) continue;
@@ -942,17 +713,16 @@ function checkGuess(target, guess) {
   return result.sort((a, b) => order[a] - order[b]);
 }
 
-/* ============================================================
-   SAVE/LOAD UNLIMITED GAME
-   ============================================================ */
+function loadDailyState() { try { return JSON.parse(localStorage.getItem(KEYS.daily)); } catch { return null; } }
+function saveDailyState() {
+  if (!game || game.mode !== 'daily') return;
+  localStorage.setItem(KEYS.daily, JSON.stringify({ date: getUtcDayInfo().dateStr, target: game.target, attempts: game.attempts, current: game.current, finished: game.finished, won: game.won }));
+}
 function loadUnlimitedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEYS.unlimited));
     if (saved && !saved.finished) {
       saved.animating = false;
-      
-      // Если количество фишек изменилось (например, было 4, стало 6), 
-      // мы принудительно очищаем массив current под новый размер
       if (!Array.isArray(saved.current) || saved.current.length !== saved.numChips) {
         saved.current = Array(saved.numChips).fill(null);
         saved.selectedSlot = 0;
@@ -964,90 +734,38 @@ function loadUnlimitedState() {
   } catch(e) {}
   return null;
 }
-
 function saveUnlimitedState() {
-  if (game && game.mode === 'unlimited') {
-    const stateToSave = Object.assign({}, game, { animating: false }); // <-- Убираем флаг анимации
-    localStorage.setItem(KEYS.unlimited, JSON.stringify(stateToSave));
-  }
+  if (game && game.mode === 'unlimited') localStorage.setItem(KEYS.unlimited, JSON.stringify(Object.assign({}, game, { animating: false })));
 }
-function clearUnlimitedState() {
-  localStorage.removeItem(KEYS.unlimited);
-}
+function clearUnlimitedState() { localStorage.removeItem(KEYS.unlimited); }
 
-/* ============================================================
-   DAILY & UNLIMITED STARTERS
-   ============================================================ */
-function loadDailyState() { try { return JSON.parse(localStorage.getItem(KEYS.daily)); } catch { return null; } }
-function saveDailyState() {
-  if (!game || game.mode !== 'daily') return;
-  localStorage.setItem(KEYS.daily, JSON.stringify({ 
-    date: getUtcDayInfo().dateStr, 
-    target: game.target, 
-    attempts: game.attempts, 
-    current: game.current, // <-- Сохраняем выбранные цвета
-    finished: game.finished, 
-    won: game.won 
-  }));
-}
 function startDaily() {
-  const info = getUtcDayInfo();
-  const saved = loadDailyState();
+  const info = getUtcDayInfo(), saved = loadDailyState();
   if (saved && saved.date === info.dateStr) {
-    // Если игра уже была начата сегодня, восстанавливаем её
-    game = { 
-      mode:'daily', 
-      target:saved.target, 
-      attempts:saved.attempts||[], 
-      current: (Array.isArray(saved.current) && saved.current.length === DAILY.CHIPS) ? saved.current : Array(DAILY.CHIPS).fill(null),
-      maxAttempts:DAILY.ATTEMPTS, 
-      numColors:DAILY.COLORS, 
-      numChips:DAILY.CHIPS, 
-      allowRepeats:false, 
-      finished:!!saved.finished, 
-      won:!!saved.won, 
-      date:info.dateStr, 
-      dayNum:info.dayNum 
-    };
+    game = { mode:'daily', target:saved.target, attempts:saved.attempts||[], current: (Array.isArray(saved.current) && saved.current.length === DAILY.CHIPS) ? saved.current : Array(DAILY.CHIPS).fill(null), maxAttempts:DAILY.ATTEMPTS, numColors:DAILY.COLORS, numChips:DAILY.CHIPS, allowRepeats:false, finished:!!saved.finished, won:!!saved.won, date:info.dateStr, dayNum:info.dayNum };
   } else {
-    // Новая игра
     game = { mode:'daily', target:generateTarget(hashString('color-daily-'+info.dateStr), DAILY.COLORS, DAILY.CHIPS, false), attempts:[], current: Array(DAILY.CHIPS).fill(null), maxAttempts:DAILY.ATTEMPTS, numColors:DAILY.COLORS, numChips:DAILY.CHIPS, allowRepeats:false, finished:false, won:false, date:info.dateStr, dayNum:info.dayNum };
     saveDailyState();
     trackEvent('game_start', { mode: 'daily' });
   }
-  // Ставим курсор на первый пустой слот при загрузке
   const firstEmpty = game.current ? game.current.indexOf(null) : 0;
   game.selectedSlot = firstEmpty !== -1 ? firstEmpty : null;
   renderGame();
   showScreen('game');
 }
 function startUnlimited() {
-  const numColors = +$('#colors-range').value;
-  const numChips = +$('#chips-range').value;
-  const maxAttempts = +$('#attempts-range').value;
-  const allowRepeats = $('#repeats-check').checked;
-  
+  const numColors = +$('#colors-range').value, numChips = +$('#chips-range').value, maxAttempts = +$('#attempts-range').value, allowRepeats = $('#repeats-check').checked;
   if (!allowRepeats && numChips > numColors) { toast(t('too_many_chips')); return; }
-  
   const seed = Math.floor(Math.random() * 2 ** 31);
-  game = { 
-    mode:'unlimited', 
-    target:generateTarget(seed, numColors, numChips, allowRepeats), 
-    attempts:[], 
-    current: Array(numChips).fill(null), // <--- Жестко создаем массив из null
-    selectedSlot: 0, 
-    maxAttempts, 
-    numColors, 
-    numChips, 
-    allowRepeats, 
-    finished:false, 
-    won:false, 
-    date:null, 
-    dayNum:null 
-  };
-  saveUnlimitedState(); 
-  trackEvent('game_start', { mode: 'unlimited' });
-  renderGame(); 
+  game = { mode:'unlimited', target:generateTarget(seed, numColors, numChips, allowRepeats), attempts:[], current: Array(numChips).fill(null), selectedSlot: 0, maxAttempts, numColors, numChips, allowRepeats, finished:false, won:false, date:null, dayNum:null };
+  saveUnlimitedState(); trackEvent('game_start', { mode: 'unlimited' });
+  renderGame(); showScreen('game');
+}
+function startChallengeCreator() {
+  game = { mode:'challenge_create', target: [], attempts: [], current: Array(DAILY.CHIPS).fill(null), maxAttempts: 10, numColors: DAILY.COLORS, numChips: DAILY.CHIPS, allowRepeats: false, finished: false, won: false };
+  const firstEmpty = game.current ? game.current.indexOf(null) : 0;
+  game.selectedSlot = firstEmpty !== -1 ? firstEmpty : null;
+  renderGame();
   showScreen('game');
 }
 function validateSetup() {
@@ -1058,7 +776,7 @@ function validateSetup() {
 }
 
 /* ============================================================
-   SCREEN MANAGEMENT
+   SCREEN MANAGEMENT & RENDER
    ============================================================ */
 function getScreenTitle() {
   switch (currentScreen) {
@@ -1088,28 +806,23 @@ function showScreen(name) {
   if (name === 'stats') renderStats();
   if (name === 'game' && game) { if (game.mode === 'daily') startCountdown(); else stopCountdown(); }
   else stopCountdown();
-  if (tg?.BackButton) { if (name === 'menu') tg.BackButton.hide(); else tg.BackButton.show(); }
+  Platform.showBackButton(name !== 'menu');
 }
-
-/* ============================================================
-   RENDER
-   ============================================================ */
 function renderGame(opts = {}) {
   if (!game) return;
   
   const info = $('#game-info');
   if (game.finished) {
     info.textContent = game.won ? t('attempt_win', { n: game.attempts.length }) : t('attempt_lose');
-    $('#countdown').style.display = 'block'; // Показываем таймер, когда игра окончена
+    $('#countdown').style.display = 'block';
   } else {
-    info.textContent = ""; // Убираем текст "Попытка X из Y", чтобы не занимать место
-    $('#countdown').style.display = 'none'; // Прячем таймер во время игры
+    info.textContent = ""; 
+    $('#countdown').style.display = 'none'; 
   }
 
   const area = $('#attempts-area'); 
   const fragment = document.createDocumentFragment();
   
-  // Отрисовываем ТОЛЬКО сделанные попытки и пустые строки до конца
   for (let i = 0; i < game.maxAttempts; i++) {
     if (i < game.attempts.length) {
       fragment.appendChild(createAttemptRow(game.attempts[i], i, opts.animate && i === game.attempts.length - 1));
@@ -1140,30 +853,22 @@ function renderGame(opts = {}) {
   $('#title').textContent = getScreenTitle();
   $('#restart-btn').classList.toggle('hidden', !(currentScreen === 'game' && game.mode === 'unlimited'));
   
-  // Скролл к последней попытке
   setTimeout(() => {
     const rows = area.querySelectorAll('.attempt-row');
-    const targetRow = rows[game.attempts.length]; // Первая незаполненная строка
-    if (targetRow) {
-      targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else if (rows.length > 0) {
-      rows[rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    const targetRow = rows[game.attempts.length];
+    if (targetRow) targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else if (rows.length > 0) rows[rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, 50);
 }
-// Строка прошедшей или будущей попытки
 function createAttemptRow(attempt, idx, isNew) {
   const row = document.createElement('div'); 
   row.className = 'attempt-row' + (attempt ? '' : ' future');
-  
   const top = document.createElement('div'); top.className = 'row-top';
   const num = document.createElement('div'); num.className = 'attempt-num'; num.textContent = idx + 1;
   const chips = document.createElement('div'); chips.className = 'attempt-chips';
   
   for (let i = 0; i < game.numChips; i++) {
     const slot = document.createElement('div'); slot.className = 'slot';
-    
-    // ЗАЩИТА: проверяем, что попытка существует, цвет есть в палитре и он не пустой
     if (attempt && attempt.guess && attempt.guess[i] !== null && attempt.guess[i] !== undefined && COLORS[attempt.guess[i]]) {
       slot.classList.add('filled'); 
       slot.style.setProperty('--chip-color', COLORS[attempt.guess[i]].hex);
@@ -1171,29 +876,17 @@ function createAttemptRow(attempt, idx, isNew) {
     }
     chips.appendChild(slot);
   }
-  
   top.appendChild(num); top.appendChild(chips);
   
   if (attempt && attempt.flags) {
-    const flags = document.createElement('div'); 
-    flags.className = 'attempt-flags';
-    
-    // Вычисляем, сколько флажков будет в одном ряду
-    const numFlags = attempt.flags.length;
-    const cols = Math.ceil(numFlags / 2); // Делим на 2 и округляем вверх
-
-    // Задаем точную ширину плашки, чтобы влезло ровно `cols` штук
-    // 14px (ширина флажка) * cols + 4px (отступ) * (cols - 1) + 12px (внутренние отступы)
+    const flags = document.createElement('div'); flags.className = 'attempt-flags';
+    const cols = Math.ceil(attempt.flags.length / 2);
     const width = (cols * 14) + ((cols - 1) * 4) + 12;
     flags.style.width = width + 'px';
 
     attempt.flags.forEach((f, i) => {
-      const flag = document.createElement('div'); 
-      flag.className = 'flag ' + f;
-      if (isNew) { 
-        flag.classList.add('reveal'); 
-        flag.style.animationDelay = (game.numChips * 70 + 80 + i * 70) + 'ms'; 
-      }
+      const flag = document.createElement('div'); flag.className = 'flag ' + f;
+      if (isNew) { flag.classList.add('reveal'); flag.style.animationDelay = (game.numChips * 70 + 80 + i * 70) + 'ms'; }
       flags.appendChild(flag);
     });
     top.appendChild(flags);
@@ -1201,29 +894,19 @@ function createAttemptRow(attempt, idx, isNew) {
   row.appendChild(top);
   return row;
 }
-
 function renderCurrent() {
   const inner = $('#slots-inner'); inner.innerHTML = '';
-  
   if (!game.current) game.current = Array(game.numChips).fill(null);
   if (game.selectedSlot === undefined) game.selectedSlot = 0;
 
   for (let i = 0; i < game.numChips; i++) {
-    const slot = document.createElement('div'); 
-    slot.className = 'slot';
-    
-    // Проверяем, что цвет существует, чтобы не было ошибки "reading 'hex'"
+    const slot = document.createElement('div'); slot.className = 'slot';
     if (game.current[i] !== null && game.current[i] !== undefined && COLORS[game.current[i]]) {
       slot.classList.add('filled'); 
       slot.style.setProperty('--chip-color', COLORS[game.current[i]].hex);
     }
     if (i === game.selectedSlot) slot.classList.add('selected');
-    
-    slot.addEventListener('click', () => {
-      game.selectedSlot = i;
-      renderCurrent(); 
-    });
-    
+    slot.addEventListener('click', () => { game.selectedSlot = i; renderCurrent(); });
     inner.appendChild(slot);
   }
   
@@ -1231,50 +914,6 @@ function renderCurrent() {
   const shouldShowDelete = hasFilled || (game.selectedSlot !== null && game.selectedSlot > 0);
   $('#delete-btn').classList.toggle('hidden', !shouldShowDelete);
 }
-
-// Активная строка с палитрой и интерактивными слотами
-function createActiveRow(idx) {
-  const row = document.createElement('div'); row.className = 'attempt-row active';
-  const top = document.createElement('div'); top.className = 'row-top';
-  const num = document.createElement('div'); num.className = 'attempt-num'; num.textContent = idx + 1;
-  const chips = document.createElement('div'); chips.className = 'attempt-chips';
-  
-  if (!game.current) game.current = Array(game.numChips).fill(null);
-  if (game.selectedSlot === undefined) game.selectedSlot = 0;
-  
-  for (let i = 0; i < game.numChips; i++) {
-    const slot = document.createElement('div'); slot.className = 'slot';
-    if (game.current[i] !== null) {
-      slot.classList.add('filled'); slot.style.setProperty('--chip-color', COLORS[game.current[i]].hex);
-    }
-    if (i === game.selectedSlot) slot.classList.add('selected');
-    
-    // ТОЛЬКО ВЫДЕЛЯЕМ слот, ничего не стираем
-    slot.addEventListener('click', () => {
-      game.selectedSlot = i;
-      // Мгновенно обновляем классы без перерисовки всего экрана
-      row.querySelectorAll('.slot').forEach((s, index) => {
-        if (index === i) s.classList.add('selected');
-        else s.classList.remove('selected');
-      });
-    });
-    chips.appendChild(slot);
-  }
-  
-  const clearBtn = document.createElement('button');
-  clearBtn.className = 'clear-btn'; clearBtn.innerHTML = '✕';
-  clearBtn.title = 'Очистить всю строку';
-  clearBtn.addEventListener('click', () => {
-    game.current = Array(game.numChips).fill(null);
-    game.selectedSlot = 0;
-    renderGame(); // Здесь перерисовка нужна, так как меняется всё
-  });
-  
-  top.appendChild(num); top.appendChild(chips); top.appendChild(clearBtn);
-  row.appendChild(top);
-  return row;
-}
-
 function renderPalette() {
   if (!game || game.finished) return;
   const p = $('#palette'); p.innerHTML = '';
@@ -1286,75 +925,51 @@ function renderPalette() {
     p.appendChild(btn);
   }
 }
-
 function addCurrentChip(colorIdx) {
   if (!game || game.finished || game.animating) return;
   if (game.selectedSlot === undefined || game.selectedSlot === null) return;
 
   game.current[game.selectedSlot] = colorIdx;
-
   let nextEmpty = game.current.indexOf(null, game.selectedSlot + 1);
   if (nextEmpty === -1) nextEmpty = game.current.indexOf(null);
   
-  if (nextEmpty !== -1) {
-    game.selectedSlot = nextEmpty;
-  } else {
-    game.selectedSlot = null;
-  }
+  if (nextEmpty !== -1) game.selectedSlot = nextEmpty;
+  else game.selectedSlot = null;
 
-  renderCurrent();
-  updateSubmit();
-  
+  renderCurrent(); updateSubmit();
   if (game.mode === 'daily') saveDailyState();
   if (game.mode === 'unlimited') saveUnlimitedState();
 }
-
 function removeCurrentChip() {
   if (!game || game.finished || game.animating) return;
 
-  // 1. Если курсора нет (все заполнено), стираем последний элемент
   if (game.selectedSlot === null || game.selectedSlot === undefined) {
     const filledIndices = game.current.map((c, i) => c !== null ? i : -1).filter(i => i !== -1);
     if (filledIndices.length > 0) {
       const lastFilled = filledIndices[filledIndices.length - 1];
       game.current[lastFilled] = null;
-      game.selectedSlot = lastFilled; // Ставим курсор на освободившееся место
+      game.selectedSlot = lastFilled;
     }
-  } 
-  // 2. Если текущий слот заполнен — очищаем его
-  else if (game.current[game.selectedSlot] !== null) {
+  } else if (game.current[game.selectedSlot] !== null) {
     game.current[game.selectedSlot] = null;
-  } 
-  // 3. Если текущий слот пуст, но курсор не на первом месте — двигаем курсор влево
-  else if (game.selectedSlot > 0) {
+  } else if (game.selectedSlot > 0) {
     game.selectedSlot--;
-    // Если на новом (левом) месте есть шарик, стираем и его
-    if (game.current[game.selectedSlot] !== null) {
-      game.current[game.selectedSlot] = null;
-    }
+    if (game.current[game.selectedSlot] !== null) game.current[game.selectedSlot] = null;
   }
   
-  renderCurrent();
-  updateSubmit();
-  
+  renderCurrent(); updateSubmit();
   if (game.mode === 'daily') saveDailyState();
   if (game.mode === 'unlimited') saveUnlimitedState();
 }
-
 function updateSubmit() {
   const btn = $('#submit-btn');
   const isFilled = game.current && !game.current.includes(null);
   const filledCount = game.current ? game.current.filter(c => c !== null).length : 0;
   
   btn.disabled = !isFilled;
-  
-  if (game.mode === 'challenge_create') {
-    btn.textContent = t('challenge_submit');
-  } else {
-    btn.textContent = isFilled ? t('submit') : t('selected', { n: filledCount, m: game.numChips });
-  }
+  if (game.mode === 'challenge_create') btn.textContent = t('challenge_submit');
+  else btn.textContent = isFilled ? t('submit') : t('selected', { n: filledCount, m: game.numChips });
 }
-
 
 /* ============================================================
    COUNTDOWN
@@ -1364,32 +979,21 @@ function stopCountdown() { if (countdownInterval) { clearInterval(countdownInter
 function updateCountdown() { if (game && game.mode === 'daily') $('#countdown').textContent = t('next_in', { t: formatCountdown(msUntilNextDay()) }); }
 
 /* ============================================================
-   SUBMIT
+   SUBMIT & OVERLAYS
    ============================================================ */
 async function submitGuess() {
-  // 1. Проверка на пустые слоты и завершенную игру
   if (!game || game.finished || game.animating || !game.current || game.current.includes(null)) return;
 
-  // 2. Проверка для режима "Загадать другу"
-  if (game.mode === 'challenge_create') {
-    createChallengeLink();
-    return;
-  }
+  if (game.mode === 'challenge_create') { createChallengeLink(); return; }
 
-  // 3. Основная логика
   game.animating = true;
-  
-  // Создаем массив из выбранных цветов
   const guess = [...game.current]; 
   const flags = checkGuess(game.target, guess);
-
   await sleep(150);
 
   game.attempts.push({ guess, flags }); 
-  
-  // ВАЖНО: Очищаем текущую строку, заполняя её null (для новой сетки)
-  game.current = Array(game.numChips).fill(null); // Очищаем нижнюю панель
-  game.selectedSlot = 0; // Сбрасываем фокус
+  game.current = Array(game.numChips).fill(null);
+  game.selectedSlot = 0;
 
   const isWin = flags.every(f => f === 'green'), isLast = game.attempts.length >= game.maxAttempts;
 
@@ -1407,39 +1011,18 @@ async function submitGuess() {
   else if (game.mode === 'unlimited') saveUnlimitedState();
 
   renderGame({ animate: true });
-  
-  // Ждем окончания анимации
   await sleep(game.numChips * 140 + 350);
   game.animating = false;
 
-  if (game.won) { 
-    spawnConfetti(); 
-    showWinOverlay(); 
-  } else if (game.finished) {
-    setTimeout(showLoseOverlay, 150);
-  }
+  if (game.won) { spawnConfetti(); showWinOverlay(); }
+  else if (game.finished) setTimeout(showLoseOverlay, 150);
 }
-
-/* ============================================================
-   OVERLAYS
-   ============================================================ */
 function showWinOverlay() {
-  const n = game.attempts.length;
-  // Ограничиваем индекс 10-ю попытками. Если попыток больше 10 (в безлимите), сработает win_default.
-  const keyNum = Math.min(n, 10);
-  
-  let tk = `win_${keyNum}_t`;
-  let sk = `win_${keyNum}_s`;
-  
-  // Страховка, если вдруг ключа нет
+  const n = game.attempts.length, keyNum = Math.min(n, 10);
+  let tk = `win_${keyNum}_t`, sk = `win_${keyNum}_s`;
   if (I18N[currentLang][tk] === undefined) { tk = 'win_default_t'; sk = 'win_default_s'; }
-  
-  // Выбираем смайлик для большой иконки сверху карточки
   let bigEmoji = '😊';
-  if (n === 1) bigEmoji = '🌟';
-  else if (n <= 3) bigEmoji = '🎉';
-  else if (n >= 9) bigEmoji = '😎';
-  
+  if (n === 1) bigEmoji = '🌟'; else if (n <= 3) bigEmoji = '🎉'; else if (n >= 9) bigEmoji = '😎';
   showOverlay(bigEmoji, t(tk), t(sk, { n }), true);
 }
 function showLoseOverlay() { showOverlay('🤷‍♂️', t('lose_title'), t('lose_sub'), false); }
@@ -1489,13 +1072,8 @@ function buildShareText() {
   return lines.join('\n');
 }
 async function copyText() {
-  try { 
-    await navigator.clipboard.writeText(buildShareText());
-    toast(t('share_copied')); 
-  }
-  catch { 
-    toast(t('share_failed')); 
-  }
+  try { await navigator.clipboard.writeText(buildShareText()); toast(t('share_copied')); }
+  catch { toast(t('share_failed')); }
 }
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -1530,39 +1108,24 @@ async function shareImage() {
   try {
     const blob = await drawShareImage();
     if (!blob) { await copyText(); return; }
-
     const file = new File([blob], `color-daily.png`, { type: 'image/png' });
     const title = t('share_title', { n: game.dayNum || '∞' });
     const text = buildShareText();
 
-    // Пытаемся вызвать системное окно "Поделиться"
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title, text });
-        return;
-      } catch (err) {
-        if (err.name === 'AbortError') return; // Пользователь сам отменил
-      }
+      try { await navigator.share({ files: [file], title, text }); return; }
+      catch (err) { if (err.name === 'AbortError') return; }
     }
-    
-    // Если Telegram заблокировал системный шаринг, показываем картинку прямо на экране
     showImageModal(blob, text);
-
-  } catch (e) {
-    await copyText();
-  }
+  } catch (e) { await copyText(); }
 }
-
-// Новая функция для показа картинки на экране
 function showImageModal(blob, shareText) {
   const url = URL.createObjectURL(blob);
-  const overlay = document.createElement('div'); 
-  overlay.className = 'overlay';
-  
+  const overlay = document.createElement('div'); overlay.className = 'overlay';
   overlay.innerHTML = `
     <div class="win-card" style="padding: 16px;">
-      <div class="win-sub" style="margin-bottom: 12px; color: #fff; font-weight: 600;">
-        Удерживайте картинку, чтобы сохранить
+      <div class="win-sub" style="margin-bottom: 12px; color: var(--text-main); font-weight: 600;">
+        ${escapeHtml(t('hold_to_save'))}
       </div>
       <img src="${url}" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
       <div class="win-actions" style="margin-top: 16px;">
@@ -1570,143 +1133,67 @@ function showImageModal(blob, shareText) {
         <button class="share-btn" data-act="close">OK</button>
       </div>
     </div>`;
-    
   document.body.appendChild(overlay);
-  
   overlay.addEventListener('click', async (e) => {
     const act = e.target.closest('[data-act]')?.dataset.act;
-    if (act === 'copy') {
-      try {
-        await navigator.clipboard.writeText(shareText);
-        toast(t('share_copied'));
-      } catch(err) {}
-    } else if (act === 'close' || e.target === overlay) {
-      overlay.remove();
-      URL.revokeObjectURL(url);
-    }
+    if (act === 'copy') { try { await navigator.clipboard.writeText(shareText); toast(t('share_copied')); } catch(err) {} }
+    else if (act === 'close' || e.target === overlay) { overlay.remove(); URL.revokeObjectURL(url); }
   });
 }
 
-
 /* ============================================================
-   CHALLENGE MODE (Загадать другу)
+   CHALLENGE MODE
    ============================================================ */
-function startChallengeCreator() {
-  game = { 
-    mode:'challenge_create', 
-    target: [], 
-    attempts: [], 
-    current: Array(DAILY.CHIPS).fill(null),
-    maxAttempts: 10, 
-    numColors: DAILY.COLORS, 
-    numChips: DAILY.CHIPS, 
-    allowRepeats: false, 
-    finished: false, 
-    won: false 
-  };
-  // Ставим курсор на первый пустой слот при загрузке
-  const firstEmpty = game.current ? game.current.indexOf(null) : 0;
-  game.selectedSlot = firstEmpty !== -1 ? firstEmpty : null;
-  renderGame();       // <-- Автоматически расставит все кнопки
-  showScreen('game'); // <-- Автоматически поставит правильный заголовок "Создать вызов"
-}
-
-/* ============================================================
-   CHALLENGE MODE (Загадать другу)
-   ============================================================ */
-
-// Функции для скрытия ответа в ссылке
-function encodeChallenge(arr) {
-  try {
-    const str = arr.join('-');
-    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-  } catch(e) { return arr.join('-'); }
-}
-
+function encodeChallenge(arr) { try { return btoa(arr.join('-')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, ''); } catch(e) { return arr.join('-'); } }
 function decodeChallenge(str) {
   try {
     let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
     while (b64.length % 4) b64 += '=';
-    const decoded = atob(b64);
-    return decoded.split('-').map(Number);
+    return atob(b64).split('-').map(Number);
   } catch(e) { return null; }
 }
-
-// Создание ссылки (кнопка "Отправить ссылку")
 async function createChallengeLink() {
   if (game.current.length !== 4) return;
-  
-  // Кодируем массив цветов, чтобы ссылка не выдавала ответ
   const code = encodeChallenge(game.current); 
   let link = '', text = '';
 
-  // Генерируем ссылку в зависимости от платформы
   if (Platform.type === 'tg') {
-    // Ссылка для Telegram Mini App
     link = `https://t.me/${CONFIG.tgBotName}/app?startapp=challenge_${code}`;
     text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
   } else if (Platform.type === 'max') {
-    // Ссылка для MAX Mini App
     link = `https://max.ru/${CONFIG.maxBotName}?startapp=challenge_${code}`;
     text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
   } else {
-    // Ссылка для обычного браузера
     link = window.location.origin + window.location.pathname + '?challenge=' + code;
     text = `Я загадал тебе код в Color Daily! Попробуй угадать: ${link}`;
   }
 
-  if (navigator.share) {
-    try { await navigator.share({ title: 'Color Daily Challenge', text }); return; } catch(e){}
-  }
-  try { 
-    await navigator.clipboard.writeText(text); 
-    toast(t('link_copied'));
-  } catch(e) { prompt('Скопируйте ссылку:', text); }
-  
+  if (navigator.share) { try { await navigator.share({ title: 'Color Daily Challenge', text }); return; } catch(e){} }
+  try { await navigator.clipboard.writeText(text); toast(t('link_copied')); } 
+  catch(e) { prompt('Скопируйте ссылку:', text); }
   showScreen('menu');
 }
-
-// Чтение ссылки (при запуске игры)
 function checkChallengeUrl() {
   let challengeData = null;
   const params = new URLSearchParams(window.location.search);
-  
-  // 1. Ищем в браузере
   if (params.has('challenge')) challengeData = params.get('challenge');
 
-  // 2. Ищем в Telegram / MAX (в start_param)
   if (!challengeData) {
     let startParam = null;
-    if (Platform.type === 'tg') {
-      startParam = tg.initDataUnsafe?.start_param;
-    } else if (Platform.type === 'max') {
-      startParam = Platform.maxApp?.initDataUnsafe?.start_param || Platform.maxApp?.startParam;
-    }
-    if (startParam && startParam.startsWith('challenge_')) {
-      challengeData = startParam.replace('challenge_', '');
-    }
+    if (Platform.type === 'tg') startParam = tg.initDataUnsafe?.start_param;
+    else if (Platform.type === 'max') startParam = Platform.maxApp?.initDataUnsafe?.start_param || Platform.maxApp?.startParam;
+    if (startParam && startParam.startsWith('challenge_')) challengeData = startParam.replace('challenge_', '');
   }
 
-  // 3. Если нашли данные, декодируем и запускаем
   if (challengeData) {
     const target = decodeChallenge(challengeData);
-    
-    // Проверяем, что это массив из 4 валидных цветов
     if (target && target.length === 4 && target.every(n => n >= 0 && n < COLORS.length)) {
-      game = { 
-        mode:'challenge_play', 
-        target: target, 
-        attempts: [], current: [], 
-        maxAttempts: 10, numColors: DAILY.COLORS, numChips: DAILY.CHIPS, 
-        allowRepeats: false, finished: false, won: false 
-      };
+      game = { mode:'challenge_play', target: target, attempts: [], current: Array(DAILY.CHIPS).fill(null), selectedSlot: 0, maxAttempts: 10, numColors: DAILY.COLORS, numChips: DAILY.CHIPS, allowRepeats: false, finished: false, won: false };
       $('#submit-btn').textContent = t('submit');
-      renderGame(); 
-      showScreen('game');
+      renderGame(); showScreen('game');
     }
   }
 }
-
 
 /* ============================================================
    MENU & STATS
@@ -1739,13 +1226,16 @@ function renderStats() {
 }
 
 /* ============================================================
-   EVENT BINDINGS
+   EVENT BINDINGS & BOOT
    ============================================================ */
 function bindEvents() {
   $('#back-btn').addEventListener('click', () => showScreen('menu'));
   $('#lang-btn').addEventListener('click', () => { $('#lang-modal').classList.remove('hidden'); applyTranslations(); });
-  
-  // Меню
+  $('#theme-btn').addEventListener('click', () => {
+    const current = document.body.getAttribute('data-theme') || 'dark';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });  
+
   $('#play-daily').addEventListener('click', startDaily);
   $('#play-unlimited').addEventListener('click', () => {
     const saved = loadUnlimitedState();
@@ -1758,15 +1248,9 @@ function bindEvents() {
   });
   $('#open-stats').addEventListener('click', () => { showScreen('stats'); trackEvent('stats_opened'); });
   $('#open-rules').addEventListener('click', () => { showScreen('rules'); trackEvent('rules_opened'); });
-  $('#open-donate').addEventListener('click', () => {
-    trackEvent('donate_clicked'); toast(t('donate_clicked'));
-    if (tg && tg.openLink) { try { tg.openLink(CONFIG.donateUrl); return; } catch(e) {} }
-    window.open(CONFIG.donateUrl, '_blank', 'noopener');
-  });
-
+  $('#open-donate').addEventListener('click', () => { trackEvent('donate_clicked'); toast(t('donate_clicked')); Platform.openLink(CONFIG.donateUrl); });
   $('#delete-btn').addEventListener('click', removeCurrentChip);
 
-  // Кнопка "Заново" (Restart)
   $('#restart-btn').addEventListener('click', () => {
     if (confirm(t('new_game_confirm'))) {
       clearUnlimitedState();
@@ -1780,80 +1264,57 @@ function bindEvents() {
     }
   });
 
-
-
-  // Настройки
   ['colors-range', 'chips-range', 'attempts-range'].forEach(id => {
     const el = $('#' + id);
     el.addEventListener('input', () => { $('#' + id.replace('range', 'val')).textContent = el.value; validateSetup(); });
   });
   $('#repeats-check').addEventListener('change', validateSetup);
   $('#start-unlimited').addEventListener('click', startUnlimited);
-
-  // Игра
   $('#new-game-btn').addEventListener('click', () => { showScreen('setup'); });
   $('#go-home-btn').addEventListener('click', () => showScreen('menu'));
   $('#share-result-btn').addEventListener('click', shareImage);
   $('#submit-btn').addEventListener('click', submitGuess);
+  $('#play-challenge').addEventListener('click', startChallengeCreator);
 
-  // Статистика
   $('#reset-stats').addEventListener('click', () => {
     if (confirm(t('reset_confirm'))) { stats = defaultStats(); saveStats(); renderStats(); toast(t('stats_reset_ok')); trackEvent('stats_reset'); }
   });
 
-  // Модалка языков
   $('#lang-modal').addEventListener('click', (e) => {
     if (e.target === $('#lang-modal')) { $('#lang-modal').classList.add('hidden'); return; }
     const btn = e.target.closest('[data-lang]');
     if (btn) { setLang(btn.dataset.lang); $('#lang-modal').classList.add('hidden'); }
   });
 
-  $('#play-challenge').addEventListener('click', startChallengeCreator);
-
-  // Клавиатура
   document.addEventListener('keydown', (e) => {
     if (currentScreen !== 'game' || !game || game.finished) return;
-    if (e.key === 'Enter' && !$('#submit-btn').disabled) {
-      submitGuess();
-    } else if (e.key === 'Backspace') {
-      e.preventDefault();
-      if (game.current && game.current[game.selectedSlot] !== null) {
-        game.current[game.selectedSlot] = null;
-        // Перерисовываем, чтобы обновить UI
-        renderGame(); 
-      }
-    } else if (/^[1-9]$/.test(e.key)) { 
-      const idx = parseInt(e.key) - 1; 
-      if (idx < game.numColors) addCurrentChip(idx); 
-    }
+    if (e.key === 'Enter' && !$('#submit-btn').disabled) submitGuess();
+    else if (e.key === 'Backspace') { e.preventDefault(); if (game.current && game.current[game.selectedSlot] !== null) { game.current[game.selectedSlot] = null; renderGame(); } }
+    else if (/^[1-9]$/.test(e.key)) { const idx = parseInt(e.key) - 1; if (idx < game.numColors) addCurrentChip(idx); }
   });
 
-  // Запрет зума по двойному тапу
   let lastTouch = 0;
   document.addEventListener('touchend', (e) => {
     const now = Date.now(); if (now - lastTouch <= 300) e.preventDefault(); lastTouch = now;
   }, { passive: false });
 }
 
-/* ============================================================
-   BOOT
-   ============================================================ */
 function boot() {
   currentLang = detectLang();
   document.documentElement.lang = currentLang;
   stats = loadStats();
   bindEvents();
   applyTranslations();
+  applyTheme(localStorage.getItem(KEYS.theme) || 'dark');
+  
+  Platform.init();
+  Platform.setupBackButton(() => { if (currentScreen !== 'menu') showScreen('menu'); });
+  
   showScreen('menu');
   if (CONFIG.yandexMetrikaId) initYandexMetrika(CONFIG.yandexMetrikaId);
   trackEvent('app_open', { mode: 'session', savedDay: loadDailyState()?.date || null });
-  if (window.Telegram?.WebApp) {
-    tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-    try { tg.setHeaderColor('#1a1a2e'); tg.setBackgroundColor('#1a1a2e'); } catch(e) {}
-    if (tg.BackButton) tg.BackButton.onClick(() => { if (currentScreen !== 'menu') showScreen('menu'); });
-  }
-  // Проверяем, не перешел ли человек по ссылке-вызову
-  checkChallengeUrl(); 
+  
+  checkChallengeUrl();
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
